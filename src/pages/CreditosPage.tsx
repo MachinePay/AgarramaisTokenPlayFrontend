@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiRequest, ApiError } from "@/lib/api";
+import { setPendingTransactionId } from "@/lib/checkout";
 import type { CreditPackage, Transaction } from "@/lib/types";
 import { PackageCard } from "@/components/credits/PackageCard";
 
@@ -25,6 +26,7 @@ export function CreditosPage() {
       });
 
       if (transaction.checkoutUrl) {
+        setPendingTransactionId(transaction.id);
         // Redireciona para o Checkout Pro do Mercado Pago: la o cliente
         // escolhe entre cartao (com parcelamento) ou Pix na mesma tela.
         window.location.href = transaction.checkoutUrl;

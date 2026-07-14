@@ -4,6 +4,11 @@ import { EntrarPage } from "@/pages/EntrarPage";
 import { LojasPage } from "@/pages/LojasPage";
 import { VitrinePage } from "@/pages/VitrinePage";
 import { CreditosPage } from "@/pages/CreditosPage";
+import { CheckoutRetornoPage } from "@/pages/CheckoutRetornoPage";
+import { AdminPage } from "@/pages/AdminPage";
+import { HistoricoPage } from "@/pages/HistoricoPage";
+import { QrLojaPage } from "@/pages/QrLojaPage";
+import { QrMaquinaPage } from "@/pages/QrMaquinaPage";
 
 function App() {
   return (
@@ -32,6 +37,62 @@ function App() {
         element={
           <RequireAuth>
             <CreditosPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/historico"
+        element={
+          <RequireAuth>
+            <HistoricoPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/checkout/sucesso"
+        element={
+          <RequireAuth>
+            <CheckoutRetornoPage expectedStatus="success" />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/checkout/pendente"
+        element={
+          <RequireAuth>
+            <CheckoutRetornoPage expectedStatus="pending" />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/checkout/falha"
+        element={
+          <RequireAuth>
+            <CheckoutRetornoPage expectedStatus="failure" />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          <RequireAuth>
+            <AdminPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/qr/loja/:storeId"
+        element={
+          <RequireAuth>
+            <QrLojaPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/qr/maquina/:machineId"
+        element={
+          <RequireAuth>
+            <QrMaquinaPage />
           </RequireAuth>
         }
       />
