@@ -76,6 +76,13 @@ type CampaignForm = {
   startsAt: string;
   endsAt: string;
   notes: string;
+  packageId: string;
+  packageAmountBrl: string;
+  packageBaseCredits: string;
+  packageBonusCredits: string;
+  machineId: string;
+  machineCostPerGame: string;
+  machinePulsesPerCredit: string;
 };
 
 const inputClass =
@@ -275,6 +282,13 @@ export function AdminPage() {
     startsAt: "",
     endsAt: "",
     notes: "",
+    packageId: "",
+    packageAmountBrl: "",
+    packageBaseCredits: "",
+    packageBonusCredits: "0",
+    machineId: "",
+    machineCostPerGame: "",
+    machinePulsesPerCredit: "",
   });
 
   const activeStores = useMemo(() => stores.filter((store) => store.status === "ACTIVE"), [stores]);
@@ -667,9 +681,44 @@ export function AdminPage() {
           endsAt: new Date(campaignForm.endsAt).toISOString(),
           notes: campaignForm.notes || undefined,
           active: true,
+          packageOverrides:
+            campaignForm.packageId && campaignForm.packageAmountBrl && campaignForm.packageBaseCredits
+              ? [
+                  {
+                    packageId: campaignForm.packageId,
+                    amountBrl: toNumber(campaignForm.packageAmountBrl),
+                    baseCredits: toNumber(campaignForm.packageBaseCredits),
+                    bonusCredits: toNumber(campaignForm.packageBonusCredits || "0"),
+                    isPopular: true,
+                    active: true,
+                  },
+                ]
+              : undefined,
+          machineOverrides:
+            campaignForm.machineId && campaignForm.machineCostPerGame && campaignForm.machinePulsesPerCredit
+              ? [
+                  {
+                    machineId: campaignForm.machineId,
+                    costPerGame: toNumber(campaignForm.machineCostPerGame),
+                    pulsesPerCredit: toNumber(campaignForm.machinePulsesPerCredit),
+                  },
+                ]
+              : undefined,
         },
       });
-      setCampaignForm({ name: "", startsAt: "", endsAt: "", notes: "" });
+      setCampaignForm({
+        name: "",
+        startsAt: "",
+        endsAt: "",
+        notes: "",
+        packageId: "",
+        packageAmountBrl: "",
+        packageBaseCredits: "",
+        packageBonusCredits: "0",
+        machineId: "",
+        machineCostPerGame: "",
+        machinePulsesPerCredit: "",
+      });
       await loadAdminData();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar a campanha");
@@ -1333,6 +1382,75 @@ export function AdminPage() {
               value={campaignForm.notes}
               onChange={(event) => setCampaignForm({ ...campaignForm, notes: event.target.value })}
             />
+            <div className="rounded-2xl bg-amber-50 p-3">
+              <p className="mb-2 text-sm font-black text-brand-black">Promoção de pacote</p>
+              <div className="grid gap-2 lg:grid-cols-4">
+                <select
+                  className={inputClass}
+                  value={campaignForm.packageId}
+                  onChange={(event) => setCampaignForm({ ...campaignForm, packageId: event.target.value })}
+                >
+                  <option value="">Sem pacote promocional</option>
+                  {packages.map((creditPackage) => (
+                    <option key={creditPackage.id} value={creditPackage.id}>
+                      {creditPackage.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className={inputClass}
+                  inputMode="decimal"
+                  placeholder="Valor R$"
+                  value={campaignForm.packageAmountBrl}
+                  onChange={(event) => setCampaignForm({ ...campaignForm, packageAmountBrl: event.target.value })}
+                />
+                <input
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="Fichas"
+                  value={campaignForm.packageBaseCredits}
+                  onChange={(event) => setCampaignForm({ ...campaignForm, packageBaseCredits: event.target.value })}
+                />
+                <input
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="Bônus"
+                  value={campaignForm.packageBonusCredits}
+                  onChange={(event) => setCampaignForm({ ...campaignForm, packageBonusCredits: event.target.value })}
+                />
+              </div>
+            </div>
+            <div className="rounded-2xl bg-orange-50 p-3">
+              <p className="mb-2 text-sm font-black text-brand-black">Promoção de máquina</p>
+              <div className="grid gap-2 lg:grid-cols-3">
+                <select
+                  className={inputClass}
+                  value={campaignForm.machineId}
+                  onChange={(event) => setCampaignForm({ ...campaignForm, machineId: event.target.value })}
+                >
+                  <option value="">Sem máquina promocional</option>
+                  {machines.map((machine) => (
+                    <option key={machine.id} value={machine.id}>
+                      {machine.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="Fichas por jogada"
+                  value={campaignForm.machineCostPerGame}
+                  onChange={(event) => setCampaignForm({ ...campaignForm, machineCostPerGame: event.target.value })}
+                />
+                <input
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="Pulsos por ficha"
+                  value={campaignForm.machinePulsesPerCredit}
+                  onChange={(event) => setCampaignForm({ ...campaignForm, machinePulsesPerCredit: event.target.value })}
+                />
+              </div>
+            </div>
             <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
               Criar campanha
             </AdminButton>
