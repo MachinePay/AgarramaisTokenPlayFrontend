@@ -40,6 +40,16 @@ type PackageForm = {
   isPopular: boolean;
 };
 
+type UserForm = {
+  name: string;
+  email: string;
+  cpf: string;
+  phone: string;
+  password: string;
+  role: "CUSTOMER" | "ADMIN";
+  status: "ACTIVE" | "BLOCKED";
+};
+
 type LevelForm = {
   levelName: string;
   requiredCredits: string;
@@ -134,6 +144,17 @@ function campaignMoment(campaign: Campaign): "UPCOMING" | "RUNNING" | "EXPIRED" 
   return "RUNNING";
 }
 
+async function loadAdminSettingsWithFallback(): Promise<AdminSettings> {
+  try {
+    return await apiRequest<AdminSettings>("/admin/settings");
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) {
+      return { tokenValueBrl: "1.00" };
+    }
+    throw err;
+  }
+}
+
 function AdminFilterBar({
   search,
   status,
@@ -217,6 +238,15 @@ export function AdminPage() {
   const [filters, setFilters] = useState<AdminFilters>(defaultFilters);
   const [tokenValueBrl, setTokenValueBrl] = useState("1,00");
 
+  const [userForm, setUserForm] = useState<UserForm>({
+    name: "",
+    email: "",
+    cpf: "",
+    phone: "",
+    password: "",
+    role: "CUSTOMER",
+    status: "ACTIVE",
+  });
   const [packageForm, setPackageForm] = useState<PackageForm>({
     name: "",
     amountBrl: "",
@@ -263,7 +293,7 @@ export function AdminPage() {
     const filter = filters.users;
     return users.filter((user) => {
       const statusMatches = filter.status === "ALL" || user.status === filter.status || user.role === filter.status;
-      return statusMatches && matchesSearch(filter.search, [user.name, user.email, user.cpf, user.status, user.role]);
+      return statusMatches && matchesSearch(filter.search, [user.name, user.email, user.cpf, user.phone, user.status, user.role]);
     });
   }, [filters.users, users]);
 
@@ -415,7 +445,7 @@ export function AdminPage() {
       const [summaryData, distributionData, settingsData] = await Promise.all([
         apiRequest<AdminDashboardSummary>("/admin/dashboard/summary"),
         apiRequest<LoyaltyDistribution>("/admin/dashboard/loyalty-distribution"),
-        apiRequest<AdminSettings>("/admin/settings"),
+        loadAdminSettingsWithFallback(),
       ]);
 
       setSummary(summaryData);
@@ -468,6 +498,63 @@ export function AdminPage() {
       await loadAdminData();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o pacote");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function submitUser(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      await apiRequest<AdminUser>("/admin/users", {
+        method: "POST",
+        body: {
+          ...userForm,
+          phone: userForm.phone || undefined,
+        },
+      });
+      setUserForm({
+        name: "",
+        email: "",
+        cpf: "",
+        phone: "",
+        password: "",
+        role: "CUSTOMER",
+        status: "ACTIVE",
+      });
+      await loadAdminData();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel criar o usuario");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function updateUserProfile(event: FormEvent<HTMLFormElement>, user: AdminUser) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    const data = new FormData(event.currentTarget);
+    const password = String(data.get("password") || "");
+
+    try {
+      await apiRequest<AdminUser>(`/admin/users/${user.id}`, {
+        method: "PUT",
+        body: {
+          name: String(data.get("name") ?? user.name),
+          email: String(data.get("email") ?? user.email),
+          cpf: String(data.get("cpf") ?? user.cpf),
+          phone: String(data.get("phone") || "") || null,
+          role: data.get("role"),
+          status: data.get("status"),
+          ...(password ? { password } : {}),
+        },
+      });
+      await loadAdminData();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel atualizar o usuario");
     } finally {
       setSaving(false);
     }
@@ -944,13 +1031,75 @@ export function AdminPage() {
 
       {!loading && activeTab === "users" && (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <AdminFormSection title="Criar usuário" onSubmit={submitUser} className="sm:col-span-2 xl:col-span-3">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              <input
+                className={inputClass}
+                required
+                placeholder="Nome"
+                value={userForm.name}
+                onChange={(event) => setUserForm({ ...userForm, name: event.target.value })}
+              />
+              <input
+                className={inputClass}
+                required
+                type="email"
+                placeholder="E-mail"
+                value={userForm.email}
+                onChange={(event) => setUserForm({ ...userForm, email: event.target.value })}
+              />
+              <input
+                className={inputClass}
+                required
+                placeholder="CPF"
+                value={userForm.cpf}
+                onChange={(event) => setUserForm({ ...userForm, cpf: event.target.value })}
+              />
+              <input
+                className={inputClass}
+                placeholder="Telefone"
+                value={userForm.phone}
+                onChange={(event) => setUserForm({ ...userForm, phone: event.target.value })}
+              />
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <input
+                className={inputClass}
+                required
+                type="password"
+                placeholder="Senha"
+                value={userForm.password}
+                onChange={(event) => setUserForm({ ...userForm, password: event.target.value })}
+              />
+              <select
+                className={inputClass}
+                value={userForm.role}
+                onChange={(event) => setUserForm({ ...userForm, role: event.target.value as UserForm["role"] })}
+              >
+                <option value="CUSTOMER">Cliente</option>
+                <option value="ADMIN">Admin</option>
+              </select>
+              <select
+                className={inputClass}
+                value={userForm.status}
+                onChange={(event) => setUserForm({ ...userForm, status: event.target.value as UserForm["status"] })}
+              >
+                <option value="ACTIVE">Ativo</option>
+                <option value="BLOCKED">Bloqueado</option>
+              </select>
+            </div>
+            <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
+              Criar usuário
+            </AdminButton>
+          </AdminFormSection>
+
           <div className="sm:col-span-2 xl:col-span-3">
             <AdminFilterBar
               search={filters.users.search}
               status={filters.users.status}
               total={users.length}
               filtered={filteredUsers.length}
-              searchPlaceholder="Buscar por nome, e-mail ou CPF"
+              searchPlaceholder="Buscar por nome, e-mail, CPF ou telefone"
               statusOptions={[
                 { value: "ALL", label: "Todos" },
                 { value: "ACTIVE", label: "Ativos" },
@@ -977,6 +1126,7 @@ export function AdminPage() {
                     Saldo {user.creditBalance} · Comprados {user.totalCreditsPurchased}
                   </p>
                   <p className="text-xs text-gray-500">CPF {user.cpf}</p>
+                  <p className="text-xs text-gray-500">Telefone {user.phone || "Nao informado"}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
                   <AdminTag tone={user.role === "ADMIN" ? "black" : "gray"}>{user.role}</AdminTag>
@@ -1000,6 +1150,28 @@ export function AdminPage() {
                   {user.role === "ADMIN" ? "Rebaixar" : "Promover"}
                 </AdminButton>
               </div>
+              <form onSubmit={(event) => updateUserProfile(event, user)} className="mt-3 grid gap-2">
+                <input name="name" className={inputClass} defaultValue={user.name} placeholder="Nome" />
+                <input name="email" className={inputClass} defaultValue={user.email} type="email" placeholder="E-mail" />
+                <div className="grid grid-cols-2 gap-2">
+                  <input name="cpf" className={inputClass} defaultValue={user.cpf} placeholder="CPF" />
+                  <input name="phone" className={inputClass} defaultValue={user.phone ?? ""} placeholder="Telefone" />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <input name="password" className={inputClass} type="password" placeholder="Nova senha" />
+                  <select name="role" className={inputClass} defaultValue={user.role}>
+                    <option value="CUSTOMER">Cliente</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                  <select name="status" className={inputClass} defaultValue={user.status}>
+                    <option value="ACTIVE">Ativo</option>
+                    <option value="BLOCKED">Bloqueado</option>
+                  </select>
+                </div>
+                <AdminButton type="submit" variant="primary" disabled={saving}>
+                  Salvar cadastro
+                </AdminButton>
+              </form>
             </AdminCard>
           ))}
         </section>

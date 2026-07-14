@@ -14,6 +14,7 @@ export function EntrarPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +29,7 @@ export function EntrarPage() {
     setError(null);
     try {
       if (isRegisterMode) {
-        await register({ name, email, cpf, password });
+        await register({ name, email, cpf, phone, password });
       } else {
         await login(email, password);
       }
@@ -119,6 +120,23 @@ export function EntrarPage() {
               onChange={(event) => setCpf(event.target.value)}
               className="rounded-xl border border-gray-200 bg-surface-soft px-4 py-3 text-base outline-none focus:border-brand-yellow"
               placeholder="000.000.000-00"
+            />
+          </label>
+        )}
+
+        {isRegisterMode && (
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-brand-black">
+            Telefone
+            <input
+              type="tel"
+              required
+              minLength={8}
+              maxLength={20}
+              inputMode="tel"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+              className="rounded-xl border border-gray-200 bg-surface-soft px-4 py-3 text-base outline-none focus:border-brand-yellow"
+              placeholder="(11) 99999-9999"
             />
           </label>
         )}

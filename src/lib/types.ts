@@ -67,6 +67,7 @@ export type AdminUser = {
   name: string;
   email: string;
   cpf: string;
+  phone: string | null;
   status: "ACTIVE" | "BLOCKED";
   role: "CUSTOMER" | "ADMIN";
   creditBalance: number;
