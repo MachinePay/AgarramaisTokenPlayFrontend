@@ -576,6 +576,27 @@ export function AdminPage() {
     }
   }
 
+  async function grantCreditsToUser(event: FormEvent<HTMLFormElement>, user: AdminUser) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    const data = new FormData(event.currentTarget);
+    const credits = toNumber(String(data.get("credits") || "0"));
+
+    try {
+      await apiRequest<AdminUser>(`/admin/users/${user.id}/credits`, {
+        method: "POST",
+        body: { credits },
+      });
+      event.currentTarget.reset();
+      await loadAdminData();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel enviar creditos");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function submitSettings(event: FormEvent) {
     event.preventDefault();
     setSaving(true);
@@ -1205,6 +1226,24 @@ export function AdminPage() {
                   {user.role === "ADMIN" ? "Rebaixar" : "Promover"}
                 </AdminButton>
               </div>
+              <form
+                onSubmit={(event) => grantCreditsToUser(event, user)}
+                className="mt-3 rounded-2xl bg-amber-50 p-3"
+              >
+                <p className="mb-2 text-xs font-black uppercase text-amber-700">Enviar créditos</p>
+                <div className="grid grid-cols-[1fr_auto] gap-2">
+                  <input
+                    name="credits"
+                    className={inputClass}
+                    required
+                    inputMode="numeric"
+                    placeholder="Quantidade"
+                  />
+                  <AdminButton type="submit" variant="primary" disabled={saving}>
+                    Enviar
+                  </AdminButton>
+                </div>
+              </form>
               <form onSubmit={(event) => updateUserProfile(event, user)} className="mt-3 grid gap-2">
                 <input name="name" className={inputClass} defaultValue={user.name} placeholder="Nome" />
                 <input name="email" className={inputClass} defaultValue={user.email} type="email" placeholder="E-mail" />
