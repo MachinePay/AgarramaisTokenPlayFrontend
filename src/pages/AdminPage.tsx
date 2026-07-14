@@ -714,6 +714,23 @@ export function AdminPage() {
     }
   }
 
+  async function deleteAdminResource(path: string, confirmationMessage: string) {
+    if (!window.confirm(confirmationMessage)) {
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+    try {
+      await apiRequest(path, { method: "DELETE" });
+      await loadAdminData();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel excluir");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function submitCampaignPackageOverride(event: FormEvent<HTMLFormElement>, campaign: Campaign) {
     event.preventDefault();
     setSaving(true);
@@ -1150,13 +1167,24 @@ export function AdminPage() {
                   </p>
                   {campaign.notes && <p className="mt-1 text-sm text-gray-500">{campaign.notes}</p>}
                 </div>
-                <AdminButton
-                  variant={campaign.active ? "primary" : "secondary"}
-                  disabled={saving}
-                  onClick={() => toggleCampaign(campaign)}
-                >
-                  {campaign.active ? "Ativa" : "Inativa"}
-                </AdminButton>
+                <div className="flex shrink-0 flex-col gap-2">
+                  <AdminButton
+                    variant={campaign.active ? "primary" : "secondary"}
+                    disabled={saving}
+                    onClick={() => toggleCampaign(campaign)}
+                  >
+                    {campaign.active ? "Ativa" : "Inativa"}
+                  </AdminButton>
+                  <AdminButton
+                    variant="danger"
+                    disabled={saving}
+                    onClick={() =>
+                      deleteAdminResource(`/admin/campaigns/${campaign.id}`, `Excluir a campanha "${campaign.name}"?`)
+                    }
+                  >
+                    Excluir
+                  </AdminButton>
+                </div>
               </div>
 
               <AdminFormSection
@@ -1335,9 +1363,26 @@ export function AdminPage() {
                       {creditPackage.baseCredits + creditPackage.bonusCredits} créditos
                     </p>
                   </div>
-                  <AdminButton variant={creditPackage.active ? "primary" : "secondary"} onClick={() => togglePackage(creditPackage)}>
-                    {creditPackage.active ? "Ativo" : "Inativo"}
-                  </AdminButton>
+                  <div className="flex shrink-0 flex-col gap-2">
+                    <AdminButton
+                      variant={creditPackage.active ? "primary" : "secondary"}
+                      onClick={() => togglePackage(creditPackage)}
+                    >
+                      {creditPackage.active ? "Ativo" : "Inativo"}
+                    </AdminButton>
+                    <AdminButton
+                      variant="danger"
+                      disabled={saving}
+                      onClick={() =>
+                        deleteAdminResource(
+                          `/admin/packages/${creditPackage.id}`,
+                          `Excluir o pacote "${creditPackage.name}"?`,
+                        )
+                      }
+                    >
+                      Excluir
+                    </AdminButton>
+                  </div>
                 </div>
                 <form onSubmit={(event) => updatePackagePricing(event, creditPackage)} className="mt-3 grid gap-2">
                   <div className="grid grid-cols-3 gap-2">
@@ -1429,9 +1474,23 @@ export function AdminPage() {
                       {level.requiredCredits} créditos · +{level.bonusCreditsReward} bônus
                     </p>
                   </div>
-                  <AdminButton variant={level.status === "ACTIVE" ? "primary" : "secondary"} onClick={() => toggleLevel(level)}>
-                    {level.status === "ACTIVE" ? "Ativo" : "Rascunho"}
-                  </AdminButton>
+                  <div className="flex shrink-0 flex-col gap-2">
+                    <AdminButton
+                      variant={level.status === "ACTIVE" ? "primary" : "secondary"}
+                      onClick={() => toggleLevel(level)}
+                    >
+                      {level.status === "ACTIVE" ? "Ativo" : "Rascunho"}
+                    </AdminButton>
+                    <AdminButton
+                      variant="danger"
+                      disabled={saving}
+                      onClick={() =>
+                        deleteAdminResource(`/admin/levels/${level.id}`, `Excluir o nivel "${level.levelName}"?`)
+                      }
+                    >
+                      Excluir
+                    </AdminButton>
+                  </div>
                 </div>
                 <form onSubmit={(event) => updateLevelRules(event, level)} className="mt-3 grid gap-2">
                   <input name="levelName" className={inputClass} defaultValue={level.levelName} />
@@ -1501,9 +1560,21 @@ export function AdminPage() {
                     <p className="font-bold text-brand-black">{store.name}</p>
                     <p className="text-sm text-gray-500">{store.location}</p>
                   </div>
-                  <AdminButton variant={store.status === "ACTIVE" ? "primary" : "secondary"} onClick={() => toggleStore(store)}>
-                    {store.status === "ACTIVE" ? "Ativa" : "Inativa"}
-                  </AdminButton>
+                  <div className="flex shrink-0 flex-col gap-2">
+                    <AdminButton
+                      variant={store.status === "ACTIVE" ? "primary" : "secondary"}
+                      onClick={() => toggleStore(store)}
+                    >
+                      {store.status === "ACTIVE" ? "Ativa" : "Inativa"}
+                    </AdminButton>
+                    <AdminButton
+                      variant="danger"
+                      disabled={saving}
+                      onClick={() => deleteAdminResource(`/admin/stores/${store.id}`, `Excluir a loja "${store.name}"?`)}
+                    >
+                      Excluir
+                    </AdminButton>
+                  </div>
                 </div>
               </AdminCard>
             ))}
@@ -1660,9 +1731,21 @@ export function AdminPage() {
                       <option value="MAINTENANCE">Manutenção</option>
                     </select>
                   </div>
-                  <AdminButton type="submit" variant="primary" disabled={saving}>
-                    Salvar regras
-                  </AdminButton>
+                  <div className="grid grid-cols-2 gap-2">
+                    <AdminButton type="submit" variant="primary" disabled={saving}>
+                      Salvar regras
+                    </AdminButton>
+                    <AdminButton
+                      type="button"
+                      variant="danger"
+                      disabled={saving}
+                      onClick={() =>
+                        deleteAdminResource(`/admin/machines/${machine.id}`, `Excluir a maquina "${machine.name}"?`)
+                      }
+                    >
+                      Excluir
+                    </AdminButton>
+                  </div>
                 </form>
               </AdminCard>
             ))}
