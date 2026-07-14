@@ -3,9 +3,9 @@ import type { ButtonHTMLAttributes } from "react";
 type Variant = "primary" | "secondary" | "danger";
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: "bg-brand-yellow text-brand-black shadow-sm",
-  secondary: "border border-gray-200 bg-white text-brand-black hover:bg-surface-soft",
-  danger: "border border-red-200 bg-white text-red-600 hover:bg-red-50",
+  primary: "bg-gradient-to-r from-brand-yellow to-orange-400 text-brand-black shadow-[0_10px_22px_rgba(245,158,11,0.26)] hover:brightness-[1.03]",
+  secondary: "border border-gray-200 bg-white text-brand-black shadow-sm hover:bg-amber-50 hover:border-amber-200",
+  danger: "border border-red-200 bg-white text-red-600 shadow-sm hover:bg-red-50",
 };
 
 type AdminButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant };

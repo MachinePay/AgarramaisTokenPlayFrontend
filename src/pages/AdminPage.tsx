@@ -529,12 +529,38 @@ export function AdminPage() {
 
   return (
     <div className="flex flex-col gap-5 py-5">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-extrabold text-brand-black">Painel Admin</h1>
-        <p className="text-sm text-gray-500">Gestão da operação digital Agarra Mais.</p>
+      <div className="relative overflow-hidden rounded-3xl bg-slate-950 px-5 py-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.22)] sm:px-7">
+        <span aria-hidden className="absolute -right-10 -top-12 h-36 w-36 rounded-full bg-brand-yellow/30" />
+        <span aria-hidden className="absolute right-16 top-8 h-20 w-20 rounded-full bg-orange-500/25" />
+        <span aria-hidden className="absolute -bottom-16 left-1/3 h-32 w-32 rounded-full bg-blue-500/20" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <span aria-hidden className="text-3xl">🧸</span>
+              <h1 className="text-3xl font-black text-white sm:text-4xl">Painel Admin</h1>
+            </div>
+            <p className="max-w-2xl text-sm font-medium text-white/70">
+              Gestão da operação digital Agarra Mais com pagamentos, máquinas e campanhas em tempo real.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 rounded-2xl bg-white/10 p-2 text-center ring-1 ring-white/15">
+            <div className="rounded-xl bg-white/10 px-3 py-2">
+              <p className="text-lg font-black">{summary?.totalUsers ?? 0}</p>
+              <p className="text-[11px] font-bold uppercase text-white/60">Usuários</p>
+            </div>
+            <div className="rounded-xl bg-white/10 px-3 py-2">
+              <p className="text-lg font-black">{summary?.activeMachines ?? 0}</p>
+              <p className="text-[11px] font-bold uppercase text-white/60">Online</p>
+            </div>
+            <div className="rounded-xl bg-brand-yellow px-3 py-2 text-brand-black">
+              <p className="text-lg font-black">{summary?.pendingTransactions ?? 0}</p>
+              <p className="text-[11px] font-bold uppercase text-brand-black/65">Pend.</p>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-gray-100 pb-5">
+      <div className="flex gap-2 overflow-x-auto rounded-2xl border border-white/70 bg-white/75 p-2 shadow-sm backdrop-blur no-scrollbar">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -542,8 +568,8 @@ export function AdminPage() {
             onClick={() => setActiveTab(tab.id)}
             className={`flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-150 active:scale-[0.97] ${
               activeTab === tab.id
-                ? "bg-brand-yellow text-brand-black shadow-sm"
-                : "bg-surface-soft text-gray-500 hover:bg-gray-100"
+                ? "bg-gradient-to-r from-brand-yellow to-orange-400 text-brand-black shadow-[0_10px_22px_rgba(245,158,11,0.24)]"
+                : "bg-white text-gray-500 hover:bg-amber-50 hover:text-brand-black"
             }`}
           >
             <span aria-hidden>{tab.icon}</span>
@@ -571,31 +597,37 @@ export function AdminPage() {
 
       {!loading && activeTab === "summary" && summary && (
         <section className="flex flex-col gap-5">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            <AdminStatCard icon="💰" label="Faturamento" value={`R$ ${summary.totalRevenueBrl}`} />
-            <AdminStatCard icon="🎯" label="Ticket médio" value={`R$ ${summary.averageTicketBrl}`} />
-            <AdminStatCard icon="👥" label="Usuários" value={String(summary.totalUsers)} />
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            <AdminStatCard icon="💰" label="Faturamento" value={`R$ ${summary.totalRevenueBrl}`} tone="amber" />
+            <AdminStatCard icon="🎯" label="Ticket médio" value={`R$ ${summary.averageTicketBrl}`} tone="purple" />
+            <AdminStatCard icon="👥" label="Usuários" value={String(summary.totalUsers)} tone="blue" />
             <AdminStatCard
               icon="🕹️"
               label="Jogadas"
               value={`${summary.successfulGameplay}/${summary.totalGameplay}`}
+              tone="green"
             />
             <AdminStatCard
               icon="💳"
               label="Pagamentos"
               value={String(summary.approvedTransactions)}
               sublabel={`${summary.pendingTransactions} pendentes`}
+              tone="slate"
             />
             <AdminStatCard
               icon="🏬"
               label="Operação"
               value={`${summary.activeMachines} online`}
               sublabel={`${summary.unavailableMachines} indisponíveis`}
+              tone="red"
             />
           </div>
 
-          <AdminCard>
-            <h2 className="text-base font-bold text-brand-black">Distribuição por nível</h2>
+          <AdminCard className="border-amber-100 bg-white/90">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-base font-black text-brand-black">Distribuição por nível</h2>
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-700">Fidelidade</span>
+            </div>
             <div className="mt-4 flex flex-col gap-4">
               {loyaltyDistribution?.distribution.map((entry) => (
                 <div key={entry.levelName}>
@@ -605,9 +637,9 @@ export function AdminPage() {
                       {entry.userCount} usuários · {entry.percentage}%
                     </span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-surface-soft">
+                  <div className="h-3 overflow-hidden rounded-full bg-slate-100">
                     <div
-                      className="h-full rounded-full bg-brand-yellow transition-all duration-500"
+                      className="h-full rounded-full bg-gradient-to-r from-brand-yellow to-orange-400 transition-all duration-500"
                       style={{ width: `${entry.percentage}%` }}
                     />
                   </div>

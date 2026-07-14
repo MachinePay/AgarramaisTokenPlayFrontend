@@ -9,9 +9,15 @@ type AppShellProps = {
 
 export function AppShell({ children, wide = false }: AppShellProps) {
   return (
-    <div className={wide ? "flex min-h-dvh flex-col bg-white" : "app-viewport flex flex-col"}>
+    <div
+      className={
+        wide
+          ? "flex min-h-dvh flex-col bg-[radial-gradient(circle_at_top_left,rgba(246,200,51,0.22),transparent_34%),linear-gradient(180deg,#fff8df_0%,#f6f8fc_42%,#ffffff_100%)]"
+          : "app-viewport flex flex-col"
+      }
+    >
       <TopNavbar wide={wide} />
-      <main className={wide ? "mx-auto w-full max-w-6xl flex-1 bg-white px-4 py-2 sm:px-8" : "flex-1 bg-white"}>
+      <main className={wide ? "mx-auto w-full max-w-6xl flex-1 px-4 py-2 sm:px-8" : "flex-1 bg-white"}>
         {children}
       </main>
     </div>
