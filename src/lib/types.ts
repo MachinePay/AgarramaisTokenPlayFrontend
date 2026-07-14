@@ -169,6 +169,10 @@ export type AdminDashboardSummary = {
   averageTicketBrl: string;
 };
 
+export type AdminSettings = {
+  tokenValueBrl: string;
+};
+
 export type LoyaltyDistribution = {
   totalUsers: number;
   distribution: Array<{

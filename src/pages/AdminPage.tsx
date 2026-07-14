@@ -4,6 +4,7 @@ import type {
   AdminDashboardSummary,
   AdminGameplayLog,
   AdminMachine,
+  AdminSettings,
   AdminTransaction,
   AdminUser,
   Campaign,
@@ -198,6 +199,7 @@ function AdminFilterBar({
 export function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("summary");
   const [summary, setSummary] = useState<AdminDashboardSummary | null>(null);
+  const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [loyaltyDistribution, setLoyaltyDistribution] = useState<LoyaltyDistribution | null>(null);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [transactions, setTransactions] = useState<AdminTransaction[]>([]);
@@ -213,6 +215,7 @@ export function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<AdminFilters>(defaultFilters);
+  const [tokenValueBrl, setTokenValueBrl] = useState("1,00");
 
   const [packageForm, setPackageForm] = useState<PackageForm>({
     name: "",
@@ -409,13 +412,16 @@ export function AdminPage() {
         apiRequest<Store[]>("/admin/stores"),
         apiRequest<AdminMachine[]>("/admin/machines"),
       ]);
-      const [summaryData, distributionData] = await Promise.all([
+      const [summaryData, distributionData, settingsData] = await Promise.all([
         apiRequest<AdminDashboardSummary>("/admin/dashboard/summary"),
         apiRequest<LoyaltyDistribution>("/admin/dashboard/loyalty-distribution"),
+        apiRequest<AdminSettings>("/admin/settings"),
       ]);
 
       setSummary(summaryData);
       setLoyaltyDistribution(distributionData);
+      setSettings(settingsData);
+      setTokenValueBrl(settingsData.tokenValueBrl.replace(".", ","));
       setUsers(usersData);
       setTransactions(transactionsData);
       setGameplayLogs(gameplayData);
@@ -462,6 +468,24 @@ export function AdminPage() {
       await loadAdminData();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o pacote");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function submitSettings(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await apiRequest<AdminSettings>("/admin/settings", {
+        method: "PUT",
+        body: { tokenValueBrl: toNumber(tokenValueBrl) },
+      });
+      setSettings(updated);
+      setTokenValueBrl(updated.tokenValueBrl.replace(".", ","));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o valor da ficha");
     } finally {
       setSaving(false);
     }
@@ -1287,6 +1311,28 @@ export function AdminPage() {
 
       {!loading && activeTab === "packages" && (
         <section className="flex flex-col gap-4">
+          <AdminFormSection title="Valor da ficha" onSubmit={submitSettings}>
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Valor unitário</span>
+                <input
+                  className={inputClass}
+                  required
+                  inputMode="decimal"
+                  placeholder="R$ 1,00"
+                  value={tokenValueBrl}
+                  onChange={(event) => setTokenValueBrl(event.target.value)}
+                />
+              </label>
+              <AdminButton type="submit" variant="primary" disabled={saving} className="h-11 px-5">
+                Salvar valor
+              </AdminButton>
+            </div>
+            <div className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
+              1 ficha = R$ {Number(settings?.tokenValueBrl ?? tokenValueBrl.replace(",", ".")).toFixed(2)}
+            </div>
+          </AdminFormSection>
+
           <AdminFormSection title="Criar pacote de créditos" onSubmit={submitPackage}>
             <input
               className={inputClass}
