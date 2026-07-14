@@ -171,6 +171,8 @@ export type AdminDashboardSummary = {
 };
 
 export type AdminSettings = {
+  tokenBundleAmountBrl: string;
+  tokenBundleCredits: number;
   tokenValueBrl: string;
 };
 

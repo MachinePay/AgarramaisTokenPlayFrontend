@@ -149,7 +149,7 @@ async function loadAdminSettingsWithFallback(): Promise<AdminSettings> {
     return await apiRequest<AdminSettings>("/admin/settings");
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
-      return { tokenValueBrl: "1.00" };
+      return { tokenBundleAmountBrl: "1.00", tokenBundleCredits: 1, tokenValueBrl: "1.00" };
     }
     throw err;
   }
@@ -236,7 +236,8 @@ export function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<AdminFilters>(defaultFilters);
-  const [tokenValueBrl, setTokenValueBrl] = useState("1,00");
+  const [tokenBundleAmountBrl, setTokenBundleAmountBrl] = useState("1,00");
+  const [tokenBundleCredits, setTokenBundleCredits] = useState("1");
 
   const [userForm, setUserForm] = useState<UserForm>({
     name: "",
@@ -451,7 +452,8 @@ export function AdminPage() {
       setSummary(summaryData);
       setLoyaltyDistribution(distributionData);
       setSettings(settingsData);
-      setTokenValueBrl(settingsData.tokenValueBrl.replace(".", ","));
+      setTokenBundleAmountBrl(settingsData.tokenBundleAmountBrl.replace(".", ","));
+      setTokenBundleCredits(String(settingsData.tokenBundleCredits));
       setUsers(usersData);
       setTransactions(transactionsData);
       setGameplayLogs(gameplayData);
@@ -567,10 +569,14 @@ export function AdminPage() {
     try {
       const updated = await apiRequest<AdminSettings>("/admin/settings", {
         method: "PUT",
-        body: { tokenValueBrl: toNumber(tokenValueBrl) },
+        body: {
+          tokenBundleAmountBrl: toNumber(tokenBundleAmountBrl),
+          tokenBundleCredits: toNumber(tokenBundleCredits),
+        },
       });
       setSettings(updated);
-      setTokenValueBrl(updated.tokenValueBrl.replace(".", ","));
+      setTokenBundleAmountBrl(updated.tokenBundleAmountBrl.replace(".", ","));
+      setTokenBundleCredits(String(updated.tokenBundleCredits));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o valor da ficha");
     } finally {
@@ -1484,16 +1490,27 @@ export function AdminPage() {
       {!loading && activeTab === "packages" && (
         <section className="flex flex-col gap-4">
           <AdminFormSection title="Valor da ficha" onSubmit={submitSettings}>
-            <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+            <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-extrabold uppercase text-gray-500">Valor unitário</span>
+                <span className="text-xs font-extrabold uppercase text-gray-500">Reais</span>
                 <input
                   className={inputClass}
                   required
                   inputMode="decimal"
                   placeholder="R$ 1,00"
-                  value={tokenValueBrl}
-                  onChange={(event) => setTokenValueBrl(event.target.value)}
+                  value={tokenBundleAmountBrl}
+                  onChange={(event) => setTokenBundleAmountBrl(event.target.value)}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Fichas</span>
+                <input
+                  className={inputClass}
+                  required
+                  inputMode="numeric"
+                  placeholder="2"
+                  value={tokenBundleCredits}
+                  onChange={(event) => setTokenBundleCredits(event.target.value)}
                 />
               </label>
               <AdminButton type="submit" variant="primary" disabled={saving} className="h-11 px-5">
@@ -1501,7 +1518,9 @@ export function AdminPage() {
               </AdminButton>
             </div>
             <div className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
-              1 ficha = R$ {Number(settings?.tokenValueBrl ?? tokenValueBrl.replace(",", ".")).toFixed(2)}
+              R$ {Number(settings?.tokenBundleAmountBrl ?? tokenBundleAmountBrl.replace(",", ".")).toFixed(2)} ={" "}
+              {settings?.tokenBundleCredits ?? Number(tokenBundleCredits || 0)} ficha(s) · 1 ficha = R${" "}
+              {Number(settings?.tokenValueBrl ?? (toNumber(tokenBundleAmountBrl) / Math.max(1, toNumber(tokenBundleCredits)))).toFixed(2)}
             </div>
           </AdminFormSection>
 
