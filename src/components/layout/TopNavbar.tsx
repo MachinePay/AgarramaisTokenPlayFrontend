@@ -25,7 +25,7 @@ export function TopNavbar({ wide = false }: { wide?: boolean }) {
         className={
           wide
             ? "sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 shadow-lg backdrop-blur"
-            : "sticky top-0 z-50 border-b border-gray-100 bg-white/95 shadow-sm backdrop-blur"
+            : "sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 shadow-lg backdrop-blur"
         }
       >
         <div
@@ -37,7 +37,7 @@ export function TopNavbar({ wide = false }: { wide?: boolean }) {
             aria-label="Abrir menu"
             onClick={() => setDrawerOpen(true)}
             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-2xl leading-none transition-transform duration-150 active:scale-90 ${
-              wide ? "bg-white/10 text-white hover:bg-white/15" : "text-brand-black"
+              wide ? "bg-white/10 text-white hover:bg-white/15" : "bg-white/10 text-white hover:bg-white/15"
             }`}
           >
             ☰
@@ -45,18 +45,18 @@ export function TopNavbar({ wide = false }: { wide?: boolean }) {
 
           {/* Centro: nome / saldo / nivel */}
           <div className="flex min-w-0 flex-1 flex-col items-center px-2 text-center">
-            <span className={`w-full truncate text-sm font-medium ${wide ? "text-white/80" : "text-brand-black"}`}>
+            <span className={`w-full truncate text-sm font-medium ${wide ? "text-white/80" : "text-white/80"}`}>
               {name}
             </span>
             <span
               key={balanceBump}
               className={`rounded-full px-2 text-xl font-bold leading-tight animate-flash-yellow ${
-                wide ? "text-brand-yellow" : "text-brand-black"
+                wide ? "text-brand-yellow" : "text-brand-yellow"
               }`}
             >
               {creditBalance} Créditos
             </span>
-            <span className={`truncate text-xs italic ${wide ? "text-white/55" : "text-gray-500"}`}>
+            <span className={`truncate text-xs italic ${wide ? "text-white/55" : "text-white/55"}`}>
               Nível {levelName}
             </span>
           </div>

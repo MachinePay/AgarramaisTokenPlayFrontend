@@ -5,31 +5,32 @@ type ProgressBarProps = {
   celebrateKey?: number;
 };
 
-/**
- * Barra de progresso de fidelidade do navbar: preenchimento amarelo com a
- * ponta marcada por um emoji de pelucia (🧸) e a porcentagem abaixo. O emoji
- * da um pulinho elastico sempre que celebrateKey muda (usuario ganhou credito).
- */
 export function ProgressBar({ percentage, className = "", celebrateKey = 0 }: ProgressBarProps) {
   const clamped = Math.min(100, Math.max(0, percentage));
 
   return (
-    <div className={`flex w-20 flex-col items-center gap-1 ${className}`}>
-      <div className="relative h-1.5 w-full rounded-full bg-gray-200">
-        <div
-          className="h-full rounded-full bg-brand-yellow transition-all duration-500 ease-out"
-          style={{ width: `${clamped}%` }}
-        />
+    <div
+      className={`flex w-36 flex-col gap-1.5 rounded-2xl bg-white/10 px-3 py-2 ring-1 ring-white/15 ${className}`}
+    >
+      <div className="flex items-center justify-between gap-2">
         <span
           key={celebrateKey}
           aria-hidden
-          className="absolute -top-[9px] left-0 select-none text-[13px] leading-none animate-bounce-once"
-          style={{ left: `${clamped}%` }}
+          className="flex h-8 w-8 select-none items-center justify-center rounded-xl bg-brand-yellow text-lg leading-none shadow-lg shadow-amber-500/25 animate-bounce-once"
         >
           🧸
         </span>
+        <div className="text-right">
+          <p className="text-base font-black leading-none text-brand-yellow">{Math.round(clamped)}%</p>
+          <p className="text-[10px] font-bold uppercase leading-none text-white/55">Nível</p>
+        </div>
       </div>
-      <span className="text-[11px] font-semibold text-gray-500">{Math.round(clamped)}%</span>
+      <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-white/20">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-brand-yellow to-orange-400 shadow-[0_0_16px_rgba(246,200,51,0.7)] transition-all duration-500 ease-out"
+          style={{ width: `${clamped}%` }}
+        />
+      </div>
     </div>
   );
 }
