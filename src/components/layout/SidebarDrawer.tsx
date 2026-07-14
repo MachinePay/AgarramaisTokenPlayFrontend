@@ -10,7 +10,6 @@ type SidebarDrawerProps = {
 const LINKS = [
   { to: "/lojas", label: "Lojas", description: "Escolher unidade", icon: "🏬" },
   { to: "/creditos", label: "Loja de Créditos", description: "Comprar fichas", icon: "💳" },
-  { to: "/historico", label: "Histórico", description: "Compras e jogadas", icon: "📜" },
 ];
 
 function isAdminToken(): boolean {

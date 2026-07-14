@@ -12,37 +12,74 @@ export function PackageCard({ creditPackage, loading, onBuy }: PackageCardProps)
 
   return (
     <div
-      className={`relative flex flex-col gap-3 overflow-hidden rounded-2xl bg-white p-4 transition-shadow ${
+      className={`relative overflow-hidden rounded-3xl p-5 text-white shadow-[0_18px_42px_rgba(15,23,42,0.16)] ${
         isRecommended
-          ? "border-2 border-brand-yellow shadow-md"
-          : "border border-gray-100 shadow-sm"
+          ? "bg-gradient-to-br from-amber-400 via-orange-500 to-orange-600"
+          : "bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800"
       }`}
     >
+      <span aria-hidden className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/15" />
+      <span aria-hidden className="absolute -bottom-10 -left-8 h-28 w-28 rounded-full bg-white/10" />
+
       {isRecommended && (
-        <div className="absolute right-0 top-0 rounded-bl-xl bg-brand-yellow px-3 py-1 text-[11px] font-extrabold tracking-wide text-brand-black">
-          RECOMENDADO
+        <div className="absolute right-4 top-4 rounded-full bg-white px-3 py-1 text-[11px] font-black uppercase text-orange-600 shadow-lg">
+          Recomendado
         </div>
       )}
 
-      <span className="text-base font-bold text-brand-black">{creditPackage.name}</span>
+      <div className="relative flex items-start justify-between gap-3 pr-20">
+        <div>
+          <p className={`text-sm font-black uppercase ${isRecommended ? "text-brand-black/70" : "text-white/60"}`}>
+            Pacote
+          </p>
+          <h2 className={`mt-1 text-xl font-black ${isRecommended ? "text-brand-black" : "text-white"}`}>
+            {creditPackage.name}
+          </h2>
+        </div>
+        <span className={`rounded-2xl px-3 py-2 text-2xl ${isRecommended ? "bg-brand-black/10" : "bg-white/10"}`}>
+          💳
+        </span>
+      </div>
 
-      <span className="text-2xl font-extrabold text-brand-black">
-        R$ {Number(creditPackage.amountBrl).toFixed(2)}
-      </span>
-
-      <span className="text-sm text-gray-500">Equivale a {totalCredits} Créditos</span>
+      <div className="relative mt-5 grid grid-cols-[1fr_auto] items-end gap-3">
+        <div>
+          <p className={`text-xs font-bold uppercase ${isRecommended ? "text-brand-black/65" : "text-white/55"}`}>
+            Você recebe
+          </p>
+          <p className={`text-4xl font-black leading-none ${isRecommended ? "text-brand-black" : "text-brand-yellow"}`}>
+            {totalCredits}
+          </p>
+          <p className={`text-sm font-bold ${isRecommended ? "text-brand-black/70" : "text-white/65"}`}>créditos</p>
+        </div>
+        <div className="text-right">
+          <p className={`text-xs font-bold uppercase ${isRecommended ? "text-brand-black/65" : "text-white/55"}`}>
+            Valor
+          </p>
+          <p className={`text-2xl font-black ${isRecommended ? "text-brand-black" : "text-white"}`}>
+            R$ {Number(creditPackage.amountBrl).toFixed(2)}
+          </p>
+        </div>
+      </div>
 
       {creditPackage.bonusCredits > 0 && (
-        <span className="inline-block w-fit rounded-lg bg-brand-yellow px-2.5 py-1 text-xs font-extrabold text-brand-black">
-          +{creditPackage.bonusCredits} CRÉDITOS BÔNUS GRÁTIS
-        </span>
+        <div
+          className={`relative mt-4 w-fit rounded-full px-3 py-1.5 text-xs font-black uppercase ${
+            isRecommended ? "bg-brand-black text-white" : "bg-brand-yellow text-brand-black"
+          }`}
+        >
+          +{creditPackage.bonusCredits} bônus grátis
+        </div>
       )}
 
       <button
         type="button"
         disabled={loading}
         onClick={() => onBuy(creditPackage)}
-        className="mt-1 w-full rounded-xl bg-brand-yellow py-3 text-sm font-bold text-brand-black transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
+        className={`relative mt-5 w-full rounded-2xl py-3.5 text-sm font-black shadow-lg transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 ${
+          isRecommended
+            ? "bg-brand-black text-white shadow-slate-900/20"
+            : "bg-gradient-to-r from-brand-yellow to-orange-400 text-brand-black shadow-amber-500/25"
+        }`}
       >
         {loading ? "Gerando pagamento..." : "Comprar com Cartão ou Pix"}
       </button>

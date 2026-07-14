@@ -17,7 +17,13 @@ export function AppShell({ children, wide = false }: AppShellProps) {
       }
     >
       <TopNavbar wide={wide} />
-      <main className={wide ? "mx-auto w-full max-w-6xl flex-1 px-4 py-2 sm:px-8" : "flex-1 bg-white"}>
+      <main
+        className={
+          wide
+            ? "mx-auto w-full max-w-6xl flex-1 px-4 py-2 sm:px-8"
+            : "flex-1 bg-[radial-gradient(circle_at_top_left,rgba(246,200,51,0.18),transparent_34%),linear-gradient(180deg,#fff8df_0%,#f7f8fb_42%,#ffffff_100%)]"
+        }
+      >
         {children}
       </main>
     </div>
