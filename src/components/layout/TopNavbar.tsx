@@ -12,6 +12,7 @@ import { SidebarDrawer } from "@/components/layout/SidebarDrawer";
 export function TopNavbar() {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
   const navbar = useAuthStore((state) => state.navbar);
+  const balanceBump = useAuthStore((state) => state.balanceBump);
 
   const name = navbar?.name ?? "";
   const creditBalance = navbar?.creditBalance ?? 0;
@@ -20,13 +21,13 @@ export function TopNavbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-gray-100 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
         {/* Esquerda: menu hamburguer */}
         <button
           type="button"
           aria-label="Abrir menu"
           onClick={() => setDrawerOpen(true)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center text-2xl leading-none text-brand-black"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-2xl leading-none text-brand-black transition-transform duration-150 active:scale-90"
         >
           ☰
         </button>
@@ -34,14 +35,17 @@ export function TopNavbar() {
         {/* Centro: nome / saldo / nivel */}
         <div className="flex min-w-0 flex-1 flex-col items-center px-2 text-center">
           <span className="w-full truncate text-sm font-medium text-brand-black">{name}</span>
-          <span className="text-xl font-bold leading-tight text-brand-black">
+          <span
+            key={balanceBump}
+            className="rounded-full px-2 text-xl font-bold leading-tight text-brand-black animate-flash-yellow"
+          >
             {creditBalance} Créditos
           </span>
           <span className="truncate text-xs italic text-gray-500">Nível {levelName}</span>
         </div>
 
         {/* Direita: progresso de fidelidade */}
-        <ProgressBar percentage={progressPercentage} className="shrink-0" />
+        <ProgressBar percentage={progressPercentage} celebrateKey={balanceBump} className="shrink-0" />
       </header>
 
       <SidebarDrawer open={isDrawerOpen} onClose={() => setDrawerOpen(false)} />

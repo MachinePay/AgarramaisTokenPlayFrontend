@@ -8,17 +8,23 @@ type PackageCardProps = {
 
 export function PackageCard({ creditPackage, loading, onBuy }: PackageCardProps) {
   const totalCredits = creditPackage.baseCredits + creditPackage.bonusCredits;
+  const isRecommended = creditPackage.isPopular;
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-brand-black bg-white p-4">
-      <div className="flex items-baseline justify-between">
-        <span className="text-base font-bold text-brand-black">{creditPackage.name}</span>
-        {creditPackage.isPopular && (
-          <span className="rounded-full bg-brand-black px-2.5 py-0.5 text-[11px] font-bold text-white">
-            MAIS POPULAR
-          </span>
-        )}
-      </div>
+    <div
+      className={`relative flex flex-col gap-3 overflow-hidden rounded-2xl bg-white p-4 transition-shadow ${
+        isRecommended
+          ? "border-2 border-brand-yellow shadow-md"
+          : "border border-gray-100 shadow-sm"
+      }`}
+    >
+      {isRecommended && (
+        <div className="absolute right-0 top-0 rounded-bl-xl bg-brand-yellow px-3 py-1 text-[11px] font-extrabold tracking-wide text-brand-black">
+          RECOMENDADO
+        </div>
+      )}
+
+      <span className="text-base font-bold text-brand-black">{creditPackage.name}</span>
 
       <span className="text-2xl font-extrabold text-brand-black">
         R$ {Number(creditPackage.amountBrl).toFixed(2)}
@@ -36,7 +42,7 @@ export function PackageCard({ creditPackage, loading, onBuy }: PackageCardProps)
         type="button"
         disabled={loading}
         onClick={() => onBuy(creditPackage)}
-        className="mt-1 w-full rounded-xl bg-brand-yellow py-3 text-sm font-bold text-brand-black transition-opacity disabled:opacity-50"
+        className="mt-1 w-full rounded-xl bg-brand-yellow py-3 text-sm font-bold text-brand-black transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100"
       >
         {loading ? "Gerando pagamento..." : "Comprar com Cartão ou Pix"}
       </button>

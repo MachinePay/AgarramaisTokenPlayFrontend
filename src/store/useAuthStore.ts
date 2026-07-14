@@ -6,6 +6,8 @@ type AuthState = {
   token: string | null;
   navbar: UserNavbarSummary | null;
   loading: boolean;
+  /** Incrementa a cada vez que o saldo sobe - usado como "key" para replayar a celebracao do navbar. */
+  balanceBump: number;
   login: (email: string, password: string) => Promise<void>;
   register: (input: { name: string; email: string; cpf: string; password: string }) => Promise<void>;
   logout: () => void;
@@ -16,6 +18,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   token: getToken(),
   navbar: null,
   loading: false,
+  balanceBump: 0,
 
   login: async (email, password) => {
     set({ loading: true });
@@ -55,7 +58,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   fetchNavbarSummary: async () => {
+    const previous = get().navbar;
     const navbar = await apiRequest<UserNavbarSummary>("/users/me");
-    set({ navbar });
+    const gainedCredits = previous ? navbar.creditBalance > previous.creditBalance : false;
+    set((state) => ({ navbar, balanceBump: gainedCredits ? state.balanceBump + 1 : state.balanceBump }));
   },
 }));
