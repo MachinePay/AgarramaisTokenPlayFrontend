@@ -75,7 +75,7 @@ function App() {
       <Route
         path="/admin"
         element={
-          <RequireAuth>
+          <RequireAuth wide>
             <AdminPage />
           </RequireAuth>
         }

@@ -4,7 +4,7 @@ import { Navigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { AppShell } from "@/components/layout/AppShell";
 
-export function RequireAuth({ children }: { children: ReactNode }) {
+export function RequireAuth({ children, wide = false }: { children: ReactNode; wide?: boolean }) {
   const token = useAuthStore((state) => state.token);
   const navbar = useAuthStore((state) => state.navbar);
   const fetchNavbarSummary = useAuthStore((state) => state.fetchNavbarSummary);
@@ -19,5 +19,5 @@ export function RequireAuth({ children }: { children: ReactNode }) {
     return <Navigate to="/entrar" replace />;
   }
 
-  return <AppShell>{children}</AppShell>;
+  return <AppShell wide={wide}>{children}</AppShell>;
 }

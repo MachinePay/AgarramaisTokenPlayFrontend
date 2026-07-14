@@ -13,6 +13,12 @@ import type {
   LoyaltyLevel,
   Store,
 } from "@/lib/types";
+import { AdminCard } from "@/components/admin/AdminCard";
+import { AdminTag } from "@/components/admin/AdminTag";
+import { AdminButton } from "@/components/admin/AdminButton";
+import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
+import { AdminStatCard } from "@/components/admin/AdminStatCard";
+import { AdminFormSection } from "@/components/admin/AdminFormSection";
 
 type AdminTab =
   | "summary"
@@ -62,18 +68,18 @@ type CampaignForm = {
 };
 
 const inputClass =
-  "rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-brand-yellow";
+  "rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-brand-black outline-none transition-colors focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/20";
 
-const tabs: Array<{ id: AdminTab; label: string }> = [
-  { id: "summary", label: "Resumo" },
-  { id: "users", label: "Usuarios" },
-  { id: "transactions", label: "Transacoes" },
-  { id: "gameplay", label: "Jogadas" },
-  { id: "campaigns", label: "Campanhas" },
-  { id: "packages", label: "Pacotes" },
-  { id: "levels", label: "Niveis" },
-  { id: "stores", label: "Lojas" },
-  { id: "machines", label: "Maquinas" },
+const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
+  { id: "summary", label: "Resumo", icon: "📊" },
+  { id: "users", label: "Usuarios", icon: "👥" },
+  { id: "transactions", label: "Transacoes", icon: "💳" },
+  { id: "gameplay", label: "Jogadas", icon: "🕹️" },
+  { id: "campaigns", label: "Campanhas", icon: "🎯" },
+  { id: "packages", label: "Pacotes", icon: "🎁" },
+  { id: "levels", label: "Niveis", icon: "🏆" },
+  { id: "stores", label: "Lojas", icon: "🏬" },
+  { id: "machines", label: "Maquinas", icon: "🧸" },
 ];
 
 function toNumber(value: string): number {
@@ -522,211 +528,226 @@ export function AdminPage() {
   }
 
   return (
-    <div className="flex flex-col gap-5 px-4 py-5">
-      <div>
-        <h1 className="text-xl font-bold text-brand-black">Admin</h1>
-        <p className="text-sm text-gray-500">Configuracao da operacao digital.</p>
+    <div className="flex flex-col gap-5 py-5">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-extrabold text-brand-black">Painel Admin</h1>
+        <p className="text-sm text-gray-500">Gestão da operação digital Agarra Mais.</p>
       </div>
 
-      <div className="no-scrollbar flex gap-2 overflow-x-auto">
+      <div className="flex flex-wrap gap-2 border-b border-gray-100 pb-5">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`shrink-0 rounded-xl px-4 py-2 text-sm font-bold ${
-              activeTab === tab.id ? "bg-brand-yellow text-brand-black" : "bg-surface-soft text-gray-500"
+            className={`flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-bold transition-all duration-150 active:scale-[0.97] ${
+              activeTab === tab.id
+                ? "bg-brand-yellow text-brand-black shadow-sm"
+                : "bg-surface-soft text-gray-500 hover:bg-gray-100"
             }`}
           >
+            <span aria-hidden>{tab.icon}</span>
             {tab.label}
           </button>
         ))}
       </div>
 
-      {error && <p className="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-600">{error}</p>}
-      {loading && <p className="py-8 text-center text-sm text-gray-500">Carregando admin...</p>}
+      {error && (
+        <div className="flex items-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+          <span aria-hidden>⚠️</span>
+          {error}
+        </div>
+      )}
+
+      {loading && (
+        <div className="flex flex-col items-center gap-3 py-16 text-sm text-gray-500">
+          <span
+            aria-hidden
+            className="h-8 w-8 animate-spin-slow rounded-full border-2 border-brand-yellow border-t-transparent"
+          />
+          Carregando painel...
+        </div>
+      )}
 
       {!loading && activeTab === "summary" && summary && (
-        <section className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-surface-soft p-3">
-              <p className="text-xs font-medium text-gray-500">Faturamento</p>
-              <p className="mt-1 text-xl font-extrabold text-brand-black">R$ {summary.totalRevenueBrl}</p>
-            </div>
-            <div className="rounded-xl bg-surface-soft p-3">
-              <p className="text-xs font-medium text-gray-500">Ticket medio</p>
-              <p className="mt-1 text-xl font-extrabold text-brand-black">R$ {summary.averageTicketBrl}</p>
-            </div>
-            <div className="rounded-xl bg-surface-soft p-3">
-              <p className="text-xs font-medium text-gray-500">Usuarios</p>
-              <p className="mt-1 text-xl font-extrabold text-brand-black">{summary.totalUsers}</p>
-            </div>
-            <div className="rounded-xl bg-surface-soft p-3">
-              <p className="text-xs font-medium text-gray-500">Jogadas</p>
-              <p className="mt-1 text-xl font-extrabold text-brand-black">{summary.successfulGameplay}/{summary.totalGameplay}</p>
-            </div>
-            <div className="rounded-xl bg-surface-soft p-3">
-              <p className="text-xs font-medium text-gray-500">Pagamentos</p>
-              <p className="mt-1 text-xl font-extrabold text-brand-black">{summary.approvedTransactions}</p>
-              <p className="text-xs text-gray-500">{summary.pendingTransactions} pendentes</p>
-            </div>
-            <div className="rounded-xl bg-surface-soft p-3">
-              <p className="text-xs font-medium text-gray-500">Operacao</p>
-              <p className="mt-1 text-xl font-extrabold text-brand-black">{summary.activeMachines} online</p>
-              <p className="text-xs text-gray-500">{summary.unavailableMachines} indisponiveis</p>
-            </div>
+        <section className="flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <AdminStatCard icon="💰" label="Faturamento" value={`R$ ${summary.totalRevenueBrl}`} />
+            <AdminStatCard icon="🎯" label="Ticket médio" value={`R$ ${summary.averageTicketBrl}`} />
+            <AdminStatCard icon="👥" label="Usuários" value={String(summary.totalUsers)} />
+            <AdminStatCard
+              icon="🕹️"
+              label="Jogadas"
+              value={`${summary.successfulGameplay}/${summary.totalGameplay}`}
+            />
+            <AdminStatCard
+              icon="💳"
+              label="Pagamentos"
+              value={String(summary.approvedTransactions)}
+              sublabel={`${summary.pendingTransactions} pendentes`}
+            />
+            <AdminStatCard
+              icon="🏬"
+              label="Operação"
+              value={`${summary.activeMachines} online`}
+              sublabel={`${summary.unavailableMachines} indisponíveis`}
+            />
           </div>
 
-          <div className="rounded-xl border border-gray-200 p-3">
-            <h2 className="text-base font-bold text-brand-black">Distribuicao por nivel</h2>
-            <div className="mt-3 flex flex-col gap-3">
+          <AdminCard>
+            <h2 className="text-base font-bold text-brand-black">Distribuição por nível</h2>
+            <div className="mt-4 flex flex-col gap-4">
               {loyaltyDistribution?.distribution.map((entry) => (
                 <div key={entry.levelName}>
-                  <div className="mb-1 flex justify-between text-xs font-medium text-gray-500">
+                  <div className="mb-1.5 flex justify-between text-xs font-medium text-gray-500">
                     <span>{entry.levelName}</span>
-                    <span>{entry.userCount} usuarios - {entry.percentage}%</span>
+                    <span>
+                      {entry.userCount} usuários · {entry.percentage}%
+                    </span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-surface-soft">
-                    <div className="h-full rounded-full bg-brand-yellow" style={{ width: `${entry.percentage}%` }} />
+                    <div
+                      className="h-full rounded-full bg-brand-yellow transition-all duration-500"
+                      style={{ width: `${entry.percentage}%` }}
+                    />
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </AdminCard>
         </section>
       )}
 
       {!loading && activeTab === "users" && (
-        <section className="flex flex-col gap-3">
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {users.length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-500">Nenhum usuario encontrado.</p>
+            <AdminEmptyState icon="👥" message="Nenhum usuário encontrado." />
           )}
 
           {users.map((user) => (
-            <div key={user.id} className="rounded-xl border border-gray-200 p-3">
+            <AdminCard key={user.id}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate font-bold text-brand-black">{user.name}</p>
                   <p className="truncate text-sm text-gray-500">{user.email}</p>
                   <p className="text-sm text-gray-500">
-                    Saldo {user.creditBalance} - Comprados {user.totalCreditsPurchased}
+                    Saldo {user.creditBalance} · Comprados {user.totalCreditsPurchased}
                   </p>
                   <p className="text-xs text-gray-500">CPF {user.cpf}</p>
                 </div>
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className="rounded-lg bg-surface-soft px-2 py-1 text-xs font-bold text-brand-black">
-                    {user.role}
-                  </span>
-                  <span className="rounded-lg bg-surface-soft px-2 py-1 text-xs font-bold text-brand-black">
-                    {user.status}
-                  </span>
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  <AdminTag tone={user.role === "ADMIN" ? "black" : "gray"}>{user.role}</AdminTag>
+                  <AdminTag tone={user.status === "ACTIVE" ? "green" : "red"}>{user.status}</AdminTag>
                 </div>
               </div>
 
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
+                <AdminButton
+                  variant={user.status === "ACTIVE" ? "danger" : "secondary"}
                   disabled={saving}
                   onClick={() => updateUser(user, { status: user.status === "ACTIVE" ? "BLOCKED" : "ACTIVE" })}
-                  className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold text-brand-black disabled:opacity-60"
                 >
                   {user.status === "ACTIVE" ? "Bloquear" : "Desbloquear"}
-                </button>
-                <button
-                  type="button"
+                </AdminButton>
+                <AdminButton
+                  variant="primary"
                   disabled={saving}
                   onClick={() => updateUser(user, { role: user.role === "ADMIN" ? "CUSTOMER" : "ADMIN" })}
-                  className="rounded-lg bg-brand-yellow px-3 py-2 text-xs font-bold text-brand-black disabled:opacity-60"
                 >
                   {user.role === "ADMIN" ? "Rebaixar" : "Promover"}
-                </button>
+                </AdminButton>
               </div>
-            </div>
+            </AdminCard>
           ))}
         </section>
       )}
 
       {!loading && activeTab === "transactions" && (
-        <section className="flex flex-col gap-3">
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {transactions.length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-500">Nenhuma transacao encontrada.</p>
+            <AdminEmptyState icon="💳" message="Nenhuma transação encontrada." />
           )}
 
           {transactions.map((transaction) => (
-            <div key={transaction.id} className="rounded-xl border border-gray-200 p-3">
+            <AdminCard key={transaction.id}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate font-bold text-brand-black">{transaction.user.name}</p>
                   <p className="truncate text-sm text-gray-500">{transaction.user.email}</p>
                   <p className="mt-1 text-sm text-gray-500">
-                    {transaction.package?.name ?? "Pacote removido"} - R$ {Number(transaction.amountBrl).toFixed(2)} - {transaction.creditsAwarded} creditos
+                    {transaction.package?.name ?? "Pacote removido"} · R${" "}
+                    {Number(transaction.amountBrl).toFixed(2)} · {transaction.creditsAwarded} créditos
                   </p>
                   <p className="text-xs text-gray-500">{formatDate(transaction.createdAt)}</p>
                 </div>
-                <span className="shrink-0 rounded-lg bg-surface-soft px-2 py-1 text-xs font-bold text-brand-black">
+                <AdminTag
+                  tone={
+                    transaction.status === "APPROVED"
+                      ? "green"
+                      : transaction.status === "PENDING"
+                        ? "amber"
+                        : "red"
+                  }
+                >
                   {transaction.status}
-                </span>
+                </AdminTag>
               </div>
 
               {transaction.status === "PENDING" && (
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
+                  <AdminButton
+                    variant="primary"
                     disabled={saving}
                     onClick={() => processTransaction(transaction, "confirm")}
-                    className="rounded-lg bg-brand-yellow px-3 py-2 text-xs font-bold text-brand-black disabled:opacity-60"
                   >
                     Confirmar
-                  </button>
-                  <button
-                    type="button"
+                  </AdminButton>
+                  <AdminButton
+                    variant="danger"
                     disabled={saving}
                     onClick={() => processTransaction(transaction, "fail")}
-                    className="rounded-lg border border-gray-200 px-3 py-2 text-xs font-bold text-brand-black disabled:opacity-60"
                   >
                     Marcar falha
-                  </button>
+                  </AdminButton>
                 </div>
               )}
-            </div>
+            </AdminCard>
           ))}
         </section>
       )}
 
       {!loading && activeTab === "gameplay" && (
-        <section className="flex flex-col gap-3">
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {gameplayLogs.length === 0 && (
-            <p className="py-8 text-center text-sm text-gray-500">Nenhuma jogada encontrada.</p>
+            <AdminEmptyState icon="🕹️" message="Nenhuma jogada encontrada." />
           )}
 
           {gameplayLogs.map((log) => (
-            <div key={log.id} className="rounded-xl border border-gray-200 p-3">
+            <AdminCard key={log.id}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="truncate font-bold text-brand-black">{log.machine.name}</p>
                   <p className="truncate text-sm text-gray-500">
-                    {log.machine.store.name} - {log.machine.telemetryId}
+                    {log.machine.store.name} · {log.machine.telemetryId}
                   </p>
                   <p className="truncate text-sm text-gray-500">
-                    {log.user.name} - {log.user.email}
+                    {log.user.name} · {log.user.email}
                   </p>
                   <p className="mt-1 text-sm text-gray-500">
-                    {log.creditsDebited} creditos - {log.pulsesSent} pulsos
+                    {log.creditsDebited} créditos · {log.pulsesSent} pulsos
                   </p>
                   <p className="text-xs text-gray-500">{formatDate(log.createdAt)}</p>
                 </div>
-                <span className="shrink-0 rounded-lg bg-surface-soft px-2 py-1 text-xs font-bold text-brand-black">
-                  {log.status}
-                </span>
+                <AdminTag tone={log.status === "SUCCESS" ? "green" : "red"}>{log.status}</AdminTag>
               </div>
-            </div>
+            </AdminCard>
           ))}
         </section>
       )}
 
       {!loading && activeTab === "campaigns" && (
         <section className="flex flex-col gap-4">
-          <form onSubmit={submitCampaign} className="grid gap-3 rounded-xl bg-surface-soft p-3">
+          <AdminFormSection title="Criar campanha" onSubmit={submitCampaign}>
             <input
               className={inputClass}
               required
@@ -752,46 +773,64 @@ export function AdminPage() {
             </div>
             <input
               className={inputClass}
-              placeholder="Observacoes"
+              placeholder="Observações"
               value={campaignForm.notes}
               onChange={(event) => setCampaignForm({ ...campaignForm, notes: event.target.value })}
             />
-            <button disabled={saving} className="rounded-xl bg-brand-yellow py-3 text-sm font-bold text-brand-black disabled:opacity-60">
+            <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
               Criar campanha
-            </button>
-          </form>
+            </AdminButton>
+          </AdminFormSection>
+
+          {campaigns.length === 0 && <AdminEmptyState icon="🎯" message="Nenhuma campanha cadastrada." />}
 
           {campaigns.map((campaign) => (
-            <div key={campaign.id} className="rounded-xl border border-gray-200 p-3">
+            <AdminCard key={campaign.id}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="font-bold text-brand-black">{campaign.name}</p>
                   <p className="text-xs text-gray-500">
-                    {formatDate(campaign.startsAt)} ate {formatDate(campaign.endsAt)}
+                    {formatDate(campaign.startsAt)} até {formatDate(campaign.endsAt)}
                   </p>
                   {campaign.notes && <p className="mt-1 text-sm text-gray-500">{campaign.notes}</p>}
                 </div>
-                <button
-                  type="button"
+                <AdminButton
+                  variant={campaign.active ? "primary" : "secondary"}
                   disabled={saving}
                   onClick={() => toggleCampaign(campaign)}
-                  className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-brand-black disabled:opacity-60"
                 >
                   {campaign.active ? "Ativa" : "Inativa"}
-                </button>
+                </AdminButton>
               </div>
 
-              <form onSubmit={(event) => submitCampaignPackageOverride(event, campaign)} className="mt-4 grid gap-2 rounded-xl bg-surface-soft p-3">
-                <p className="text-sm font-bold text-brand-black">Override de pacote</p>
+              <AdminFormSection
+                title="Override de pacote"
+                onSubmit={(event) => submitCampaignPackageOverride(event, campaign)}
+                className="mt-4 bg-white ring-1 ring-gray-100"
+              >
                 <select name="packageId" className={inputClass} required>
                   {packages.map((creditPackage) => (
-                    <option key={creditPackage.id} value={creditPackage.id}>{creditPackage.name}</option>
+                    <option key={creditPackage.id} value={creditPackage.id}>
+                      {creditPackage.name}
+                    </option>
                   ))}
                 </select>
                 <div className="grid grid-cols-3 gap-2">
                   <input name="amountBrl" className={inputClass} inputMode="decimal" placeholder="R$" required />
-                  <input name="baseCredits" className={inputClass} inputMode="numeric" placeholder="Creditos" required />
-                  <input name="bonusCredits" className={inputClass} inputMode="numeric" placeholder="Bonus" defaultValue="0" />
+                  <input
+                    name="baseCredits"
+                    className={inputClass}
+                    inputMode="numeric"
+                    placeholder="Créditos"
+                    required
+                  />
+                  <input
+                    name="bonusCredits"
+                    className={inputClass}
+                    inputMode="numeric"
+                    placeholder="Bônus"
+                    defaultValue="0"
+                  />
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
@@ -803,248 +842,407 @@ export function AdminPage() {
                     Ativo
                   </label>
                 </div>
-                <button disabled={saving} className="rounded-lg bg-brand-yellow px-3 py-2 text-xs font-bold text-brand-black disabled:opacity-60">
+                <AdminButton type="submit" variant="primary" disabled={saving}>
                   Salvar pacote da campanha
-                </button>
-              </form>
+                </AdminButton>
+              </AdminFormSection>
 
-              <form onSubmit={(event) => submitCampaignMachineOverride(event, campaign)} className="mt-3 grid gap-2 rounded-xl bg-surface-soft p-3">
-                <p className="text-sm font-bold text-brand-black">Override de maquina</p>
+              <AdminFormSection
+                title="Override de máquina"
+                onSubmit={(event) => submitCampaignMachineOverride(event, campaign)}
+                className="mt-3 bg-white ring-1 ring-gray-100"
+              >
                 <select name="machineId" className={inputClass} required>
                   {machines.map((machine) => (
-                    <option key={machine.id} value={machine.id}>{machine.name}</option>
+                    <option key={machine.id} value={machine.id}>
+                      {machine.name}
+                    </option>
                   ))}
                 </select>
                 <div className="grid grid-cols-3 gap-2">
                   <input name="costPerGame" className={inputClass} inputMode="numeric" placeholder="Custo" required />
-                  <input name="pulsesPerCredit" className={inputClass} inputMode="numeric" placeholder="Pulsos" required />
+                  <input
+                    name="pulsesPerCredit"
+                    className={inputClass}
+                    inputMode="numeric"
+                    placeholder="Pulsos"
+                    required
+                  />
                   <select name="status" className={inputClass} defaultValue="">
                     <option value="">Status atual</option>
-                    <option value="AVAILABLE">Disponivel</option>
+                    <option value="AVAILABLE">Disponível</option>
                     <option value="BUSY">Ocupada</option>
-                    <option value="MAINTENANCE">Manutencao</option>
+                    <option value="MAINTENANCE">Manutenção</option>
                   </select>
                 </div>
-                <button disabled={saving} className="rounded-lg bg-brand-yellow px-3 py-2 text-xs font-bold text-brand-black disabled:opacity-60">
-                  Salvar maquina da campanha
-                </button>
-              </form>
+                <AdminButton type="submit" variant="primary" disabled={saving}>
+                  Salvar máquina da campanha
+                </AdminButton>
+              </AdminFormSection>
 
               {(campaign.packageOverrides.length > 0 || campaign.machineOverrides.length > 0) && (
                 <div className="mt-3 flex flex-col gap-2 text-xs text-gray-500">
                   {campaign.packageOverrides.map((override) => (
                     <p key={override.id}>
-                      Pacote: {override.package.name} - R$ {Number(override.amountBrl).toFixed(2)} - {override.baseCredits + override.bonusCredits} creditos
+                      Pacote: {override.package.name} · R$ {Number(override.amountBrl).toFixed(2)} ·{" "}
+                      {override.baseCredits + override.bonusCredits} créditos
                     </p>
                   ))}
                   {campaign.machineOverrides.map((override) => (
                     <p key={override.id}>
-                      Maquina: {override.machine.name} - {override.costPerGame} credito/jogada - {override.pulsesPerCredit} pulsos/credito
+                      Máquina: {override.machine.name} · {override.costPerGame} crédito/jogada ·{" "}
+                      {override.pulsesPerCredit} pulsos/crédito
                     </p>
                   ))}
                 </div>
               )}
-            </div>
+            </AdminCard>
           ))}
         </section>
       )}
 
       {!loading && activeTab === "packages" && (
         <section className="flex flex-col gap-4">
-          <form onSubmit={submitPackage} className="grid gap-3 rounded-xl bg-surface-soft p-3">
-            <input className={inputClass} required placeholder="Nome do pacote" value={packageForm.name} onChange={(event) => setPackageForm({ ...packageForm, name: event.target.value })} />
+          <AdminFormSection title="Criar pacote de créditos" onSubmit={submitPackage}>
+            <input
+              className={inputClass}
+              required
+              placeholder="Nome do pacote"
+              value={packageForm.name}
+              onChange={(event) => setPackageForm({ ...packageForm, name: event.target.value })}
+            />
             <div className="grid grid-cols-3 gap-2">
-              <input className={inputClass} required inputMode="decimal" placeholder="R$" value={packageForm.amountBrl} onChange={(event) => setPackageForm({ ...packageForm, amountBrl: event.target.value })} />
-              <input className={inputClass} required inputMode="numeric" placeholder="Creditos" value={packageForm.baseCredits} onChange={(event) => setPackageForm({ ...packageForm, baseCredits: event.target.value })} />
-              <input className={inputClass} inputMode="numeric" placeholder="Bonus" value={packageForm.bonusCredits} onChange={(event) => setPackageForm({ ...packageForm, bonusCredits: event.target.value })} />
+              <input
+                className={inputClass}
+                required
+                inputMode="decimal"
+                placeholder="R$"
+                value={packageForm.amountBrl}
+                onChange={(event) => setPackageForm({ ...packageForm, amountBrl: event.target.value })}
+              />
+              <input
+                className={inputClass}
+                required
+                inputMode="numeric"
+                placeholder="Créditos"
+                value={packageForm.baseCredits}
+                onChange={(event) => setPackageForm({ ...packageForm, baseCredits: event.target.value })}
+              />
+              <input
+                className={inputClass}
+                inputMode="numeric"
+                placeholder="Bônus"
+                value={packageForm.bonusCredits}
+                onChange={(event) => setPackageForm({ ...packageForm, bonusCredits: event.target.value })}
+              />
             </div>
             <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
-              <input type="checkbox" checked={packageForm.isPopular} onChange={(event) => setPackageForm({ ...packageForm, isPopular: event.target.checked })} />
+              <input
+                type="checkbox"
+                checked={packageForm.isPopular}
+                onChange={(event) => setPackageForm({ ...packageForm, isPopular: event.target.checked })}
+              />
               Mais popular
             </label>
-            <button disabled={saving} className="rounded-xl bg-brand-yellow py-3 text-sm font-bold text-brand-black disabled:opacity-60">Criar pacote</button>
-          </form>
+            <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
+              Criar pacote
+            </AdminButton>
+          </AdminFormSection>
 
-          {packages.map((creditPackage) => (
-            <div key={creditPackage.id} className="rounded-xl border border-gray-200 p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-bold text-brand-black">{creditPackage.name}</p>
-                  <p className="text-sm text-gray-500">
-                    R$ {Number(creditPackage.amountBrl).toFixed(2)} - {creditPackage.baseCredits + creditPackage.bonusCredits} creditos
-                  </p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {packages.length === 0 && <AdminEmptyState icon="🎁" message="Nenhum pacote cadastrado." />}
+
+            {packages.map((creditPackage) => (
+              <AdminCard key={creditPackage.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-brand-black">{creditPackage.name}</p>
+                    <p className="text-sm text-gray-500">
+                      R$ {Number(creditPackage.amountBrl).toFixed(2)} ·{" "}
+                      {creditPackage.baseCredits + creditPackage.bonusCredits} créditos
+                    </p>
+                  </div>
+                  <AdminButton variant={creditPackage.active ? "primary" : "secondary"} onClick={() => togglePackage(creditPackage)}>
+                    {creditPackage.active ? "Ativo" : "Inativo"}
+                  </AdminButton>
                 </div>
-                <button type="button" onClick={() => togglePackage(creditPackage)} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-brand-black">
-                  {creditPackage.active ? "Ativo" : "Inativo"}
-                </button>
-              </div>
-              <form onSubmit={(event) => updatePackagePricing(event, creditPackage)} className="mt-3 grid gap-2">
-                <div className="grid grid-cols-3 gap-2">
-                  <input name="amountBrl" className={inputClass} inputMode="decimal" defaultValue={String(creditPackage.amountBrl)} />
-                  <input name="baseCredits" className={inputClass} inputMode="numeric" defaultValue={creditPackage.baseCredits} />
-                  <input name="bonusCredits" className={inputClass} inputMode="numeric" defaultValue={creditPackage.bonusCredits} />
-                </div>
-                <div className="flex items-center justify-between gap-3">
-                  <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
-                    <input name="isPopular" type="checkbox" defaultChecked={creditPackage.isPopular} />
-                    Popular
-                  </label>
-                  <button type="submit" disabled={saving} className="rounded-lg bg-brand-yellow px-3 py-2 text-xs font-bold text-brand-black disabled:opacity-60">
-                    Salvar campanha
-                  </button>
-                </div>
-              </form>
-            </div>
-          ))}
+                <form onSubmit={(event) => updatePackagePricing(event, creditPackage)} className="mt-3 grid gap-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <input name="amountBrl" className={inputClass} inputMode="decimal" defaultValue={String(creditPackage.amountBrl)} />
+                    <input name="baseCredits" className={inputClass} inputMode="numeric" defaultValue={creditPackage.baseCredits} />
+                    <input name="bonusCredits" className={inputClass} inputMode="numeric" defaultValue={creditPackage.bonusCredits} />
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
+                      <input name="isPopular" type="checkbox" defaultChecked={creditPackage.isPopular} />
+                      Popular
+                    </label>
+                    <AdminButton type="submit" variant="primary" disabled={saving}>
+                      Salvar
+                    </AdminButton>
+                  </div>
+                </form>
+              </AdminCard>
+            ))}
+          </div>
         </section>
       )}
 
       {!loading && activeTab === "levels" && (
         <section className="flex flex-col gap-4">
-          <form onSubmit={submitLevel} className="grid gap-3 rounded-xl bg-surface-soft p-3">
-            <input className={inputClass} required placeholder="Nome do nivel" value={levelForm.levelName} onChange={(event) => setLevelForm({ ...levelForm, levelName: event.target.value })} />
+          <AdminFormSection title="Criar nível de fidelidade" onSubmit={submitLevel}>
+            <input
+              className={inputClass}
+              required
+              placeholder="Nome do nível"
+              value={levelForm.levelName}
+              onChange={(event) => setLevelForm({ ...levelForm, levelName: event.target.value })}
+            />
             <div className="grid grid-cols-2 gap-2">
-              <input className={inputClass} required inputMode="numeric" placeholder="Creditos requeridos" value={levelForm.requiredCredits} onChange={(event) => setLevelForm({ ...levelForm, requiredCredits: event.target.value })} />
-              <input className={inputClass} inputMode="numeric" placeholder="Bonus" value={levelForm.bonusCreditsReward} onChange={(event) => setLevelForm({ ...levelForm, bonusCreditsReward: event.target.value })} />
+              <input
+                className={inputClass}
+                required
+                inputMode="numeric"
+                placeholder="Créditos requeridos"
+                value={levelForm.requiredCredits}
+                onChange={(event) => setLevelForm({ ...levelForm, requiredCredits: event.target.value })}
+              />
+              <input
+                className={inputClass}
+                inputMode="numeric"
+                placeholder="Bônus"
+                value={levelForm.bonusCreditsReward}
+                onChange={(event) => setLevelForm({ ...levelForm, bonusCreditsReward: event.target.value })}
+              />
             </div>
-            <select className={inputClass} value={levelForm.status} onChange={(event) => setLevelForm({ ...levelForm, status: event.target.value as LevelForm["status"] })}>
+            <select
+              className={inputClass}
+              value={levelForm.status}
+              onChange={(event) => setLevelForm({ ...levelForm, status: event.target.value as LevelForm["status"] })}
+            >
               <option value="ACTIVE">Ativo</option>
               <option value="DRAFT">Rascunho</option>
             </select>
-            <button disabled={saving} className="rounded-xl bg-brand-yellow py-3 text-sm font-bold text-brand-black disabled:opacity-60">Criar nivel</button>
-          </form>
+            <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
+              Criar nível
+            </AdminButton>
+          </AdminFormSection>
 
-          {levels.map((level) => (
-            <div key={level.id} className="rounded-xl border border-gray-200 p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-bold text-brand-black">{level.levelName}</p>
-                  <p className="text-sm text-gray-500">{level.requiredCredits} creditos - +{level.bonusCreditsReward} bonus</p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {levels.length === 0 && <AdminEmptyState icon="🏆" message="Nenhum nível cadastrado." />}
+
+            {levels.map((level) => (
+              <AdminCard key={level.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-brand-black">{level.levelName}</p>
+                    <p className="text-sm text-gray-500">
+                      {level.requiredCredits} créditos · +{level.bonusCreditsReward} bônus
+                    </p>
+                  </div>
+                  <AdminButton variant={level.status === "ACTIVE" ? "primary" : "secondary"} onClick={() => toggleLevel(level)}>
+                    {level.status === "ACTIVE" ? "Ativo" : "Rascunho"}
+                  </AdminButton>
                 </div>
-                <button type="button" onClick={() => toggleLevel(level)} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-brand-black">
-                  {level.status === "ACTIVE" ? "Ativo" : "Rascunho"}
-                </button>
-              </div>
-              <form onSubmit={(event) => updateLevelRules(event, level)} className="mt-3 grid gap-2">
-                <input name="levelName" className={inputClass} defaultValue={level.levelName} />
-                <div className="grid grid-cols-3 gap-2">
-                  <input name="requiredCredits" className={inputClass} inputMode="numeric" defaultValue={level.requiredCredits} />
-                  <input name="bonusCreditsReward" className={inputClass} inputMode="numeric" defaultValue={level.bonusCreditsReward} />
-                  <select name="status" className={inputClass} defaultValue={level.status}>
-                    <option value="ACTIVE">Ativo</option>
-                    <option value="DRAFT">Rascunho</option>
-                  </select>
-                </div>
-                <button type="submit" disabled={saving} className="rounded-lg bg-brand-yellow px-3 py-2 text-xs font-bold text-brand-black disabled:opacity-60">
-                  Salvar nivel
-                </button>
-              </form>
-            </div>
-          ))}
+                <form onSubmit={(event) => updateLevelRules(event, level)} className="mt-3 grid gap-2">
+                  <input name="levelName" className={inputClass} defaultValue={level.levelName} />
+                  <div className="grid grid-cols-3 gap-2">
+                    <input name="requiredCredits" className={inputClass} inputMode="numeric" defaultValue={level.requiredCredits} />
+                    <input name="bonusCreditsReward" className={inputClass} inputMode="numeric" defaultValue={level.bonusCreditsReward} />
+                    <select name="status" className={inputClass} defaultValue={level.status}>
+                      <option value="ACTIVE">Ativo</option>
+                      <option value="DRAFT">Rascunho</option>
+                    </select>
+                  </div>
+                  <AdminButton type="submit" variant="primary" disabled={saving}>
+                    Salvar nível
+                  </AdminButton>
+                </form>
+              </AdminCard>
+            ))}
+          </div>
         </section>
       )}
 
       {!loading && activeTab === "stores" && (
         <section className="flex flex-col gap-4">
-          <form onSubmit={submitStore} className="grid gap-3 rounded-xl bg-surface-soft p-3">
-            <input className={inputClass} required placeholder="Nome da loja" value={storeForm.name} onChange={(event) => setStoreForm({ ...storeForm, name: event.target.value })} />
-            <input className={inputClass} required placeholder="Localizacao" value={storeForm.location} onChange={(event) => setStoreForm({ ...storeForm, location: event.target.value })} />
-            <button disabled={saving} className="rounded-xl bg-brand-yellow py-3 text-sm font-bold text-brand-black disabled:opacity-60">Criar loja</button>
-          </form>
+          <AdminFormSection title="Criar loja" onSubmit={submitStore}>
+            <input
+              className={inputClass}
+              required
+              placeholder="Nome da loja"
+              value={storeForm.name}
+              onChange={(event) => setStoreForm({ ...storeForm, name: event.target.value })}
+            />
+            <input
+              className={inputClass}
+              required
+              placeholder="Localização"
+              value={storeForm.location}
+              onChange={(event) => setStoreForm({ ...storeForm, location: event.target.value })}
+            />
+            <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
+              Criar loja
+            </AdminButton>
+          </AdminFormSection>
 
-          {stores.map((store) => (
-            <div key={store.id} className="rounded-xl border border-gray-200 p-3">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-bold text-brand-black">{store.name}</p>
-                  <p className="text-sm text-gray-500">{store.location}</p>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {stores.length === 0 && <AdminEmptyState icon="🏬" message="Nenhuma loja cadastrada." />}
+
+            {stores.map((store) => (
+              <AdminCard key={store.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-brand-black">{store.name}</p>
+                    <p className="text-sm text-gray-500">{store.location}</p>
+                  </div>
+                  <AdminButton variant={store.status === "ACTIVE" ? "primary" : "secondary"} onClick={() => toggleStore(store)}>
+                    {store.status === "ACTIVE" ? "Ativa" : "Inativa"}
+                  </AdminButton>
                 </div>
-                <button type="button" onClick={() => toggleStore(store)} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-bold text-brand-black">
-                  {store.status === "ACTIVE" ? "Ativa" : "Inativa"}
-                </button>
-              </div>
-            </div>
-          ))}
+              </AdminCard>
+            ))}
+          </div>
         </section>
       )}
 
       {!loading && activeTab === "machines" && (
         <section className="flex flex-col gap-4">
-          <button
-            type="button"
-            onClick={loadCompactPayMachines}
-            disabled={loadingCompactPay}
-            className="rounded-xl border border-gray-200 px-3 py-3 text-sm font-bold text-brand-black disabled:opacity-60"
-          >
-            {loadingCompactPay ? "Consultando CompactPay..." : "Carregar maquinas da CompactPay"}
-          </button>
+          <AdminCard className="flex flex-col gap-3">
+            <AdminButton
+              variant="secondary"
+              onClick={loadCompactPayMachines}
+              disabled={loadingCompactPay}
+              className="w-full py-3"
+            >
+              {loadingCompactPay ? "Consultando CompactPay..." : "Carregar máquinas da CompactPay"}
+            </AdminButton>
 
-          {compactPayMachines.length > 0 && (
-            <div className="rounded-xl bg-surface-soft p-3">
-              <p className="text-sm font-bold text-brand-black">IDs disponiveis</p>
-              <div className="mt-2 flex flex-col gap-2">
-                {compactPayMachines.map((machine) => (
-                  <button
-                    key={machine.telemetryId}
-                    type="button"
-                    onClick={() =>
-                      setMachineForm((current) => ({
-                        ...current,
-                        telemetryId: machine.telemetryId,
-                        name: current.name || machine.name || machine.telemetryId,
-                      }))
-                    }
-                    className="rounded-lg bg-white px-3 py-2 text-left text-xs text-brand-black"
-                  >
-                    <span className="font-bold">{machine.telemetryId}</span>
-                    <span className="text-gray-500"> - {machine.name || "Sem nome"} - {machine.online ? "online" : "offline"}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={submitMachine} className="grid gap-3 rounded-xl bg-surface-soft p-3">
-            <select className={inputClass} required value={machineForm.storeId} onChange={(event) => setMachineForm({ ...machineForm, storeId: event.target.value })}>
-              {activeStores.map((store) => <option key={store.id} value={store.id}>{store.name}</option>)}
-            </select>
-            <input className={inputClass} required placeholder="Nome da maquina" value={machineForm.name} onChange={(event) => setMachineForm({ ...machineForm, name: event.target.value })} />
-            <input className={inputClass} required placeholder="ID CompactPay / telemetryId" value={machineForm.telemetryId} onChange={(event) => setMachineForm({ ...machineForm, telemetryId: event.target.value })} />
-            <input className={inputClass} placeholder="URL da imagem" value={machineForm.imageUrl} onChange={(event) => setMachineForm({ ...machineForm, imageUrl: event.target.value })} />
-            <div className="grid grid-cols-2 gap-2">
-              <input className={inputClass} required inputMode="numeric" placeholder="Custo" value={machineForm.costPerGame} onChange={(event) => setMachineForm({ ...machineForm, costPerGame: event.target.value })} />
-              <input className={inputClass} required inputMode="numeric" placeholder="Pulsos por credito" value={machineForm.pulsesPerCredit} onChange={(event) => setMachineForm({ ...machineForm, pulsesPerCredit: event.target.value })} />
-            </div>
-            <button disabled={saving || activeStores.length === 0} className="rounded-xl bg-brand-yellow py-3 text-sm font-bold text-brand-black disabled:opacity-60">Criar maquina</button>
-          </form>
-
-          {machines.map((machine) => (
-            <div key={machine.id} className="rounded-xl border border-gray-200 p-3">
-              <p className="font-bold text-brand-black">{machine.name}</p>
-              <p className="text-sm text-gray-500">{machine.store.name} - {machine.telemetryId}</p>
-              <p className="text-sm text-gray-500">{machine.costPerGame} credito/jogada - {machine.pulsesPerCredit} pulsos/credito</p>
-              <div className="mt-2 rounded-lg bg-surface-soft p-2 text-xs text-gray-500">
-                <p className="break-all">QR maquina: {getQrUrl(`/qr/maquina/${machine.id}`)}</p>
-                <p className="break-all">QR loja: {getQrUrl(`/qr/loja/${machine.store.id}`)}</p>
-              </div>
-              <form onSubmit={(event) => updateMachineRules(event, machine)} className="mt-3 grid gap-2">
-                <input name="name" className={inputClass} defaultValue={machine.name} />
-                <input name="imageUrl" className={inputClass} defaultValue={machine.imageUrl ?? ""} placeholder="URL da imagem" />
-                <div className="grid grid-cols-3 gap-2">
-                  <input name="costPerGame" className={inputClass} inputMode="numeric" defaultValue={machine.costPerGame} />
-                  <input name="pulsesPerCredit" className={inputClass} inputMode="numeric" defaultValue={machine.pulsesPerCredit} />
-                  <select name="status" className={inputClass} defaultValue={machine.status}>
-                    <option value="AVAILABLE">Disponivel</option>
-                    <option value="BUSY">Ocupada</option>
-                    <option value="MAINTENANCE">Manutencao</option>
-                  </select>
+            {compactPayMachines.length > 0 && (
+              <div className="rounded-xl bg-surface-soft p-3">
+                <p className="text-sm font-bold text-brand-black">IDs disponíveis</p>
+                <div className="mt-2 flex flex-col gap-2">
+                  {compactPayMachines.map((machine) => (
+                    <button
+                      key={machine.telemetryId}
+                      type="button"
+                      onClick={() =>
+                        setMachineForm((current) => ({
+                          ...current,
+                          telemetryId: machine.telemetryId,
+                          name: current.name || machine.name || machine.telemetryId,
+                        }))
+                      }
+                      className="rounded-lg bg-white px-3 py-2 text-left text-xs text-brand-black shadow-sm transition-transform active:scale-[0.98]"
+                    >
+                      <span className="font-bold">{machine.telemetryId}</span>
+                      <span className="text-gray-500">
+                        {" "}
+                        · {machine.name || "Sem nome"} · {machine.online ? "online" : "offline"}
+                      </span>
+                    </button>
+                  ))}
                 </div>
-                <button type="submit" disabled={saving} className="rounded-lg bg-brand-yellow px-3 py-2 text-xs font-bold text-brand-black disabled:opacity-60">
-                  Salvar regras
-                </button>
-              </form>
+              </div>
+            )}
+          </AdminCard>
+
+          <AdminFormSection title="Criar máquina" onSubmit={submitMachine}>
+            <select
+              className={inputClass}
+              required
+              value={machineForm.storeId}
+              onChange={(event) => setMachineForm({ ...machineForm, storeId: event.target.value })}
+            >
+              {activeStores.map((store) => (
+                <option key={store.id} value={store.id}>
+                  {store.name}
+                </option>
+              ))}
+            </select>
+            <input
+              className={inputClass}
+              required
+              placeholder="Nome da máquina"
+              value={machineForm.name}
+              onChange={(event) => setMachineForm({ ...machineForm, name: event.target.value })}
+            />
+            <input
+              className={inputClass}
+              required
+              placeholder="ID CompactPay / telemetryId"
+              value={machineForm.telemetryId}
+              onChange={(event) => setMachineForm({ ...machineForm, telemetryId: event.target.value })}
+            />
+            <input
+              className={inputClass}
+              placeholder="URL da imagem"
+              value={machineForm.imageUrl}
+              onChange={(event) => setMachineForm({ ...machineForm, imageUrl: event.target.value })}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                className={inputClass}
+                required
+                inputMode="numeric"
+                placeholder="Custo"
+                value={machineForm.costPerGame}
+                onChange={(event) => setMachineForm({ ...machineForm, costPerGame: event.target.value })}
+              />
+              <input
+                className={inputClass}
+                required
+                inputMode="numeric"
+                placeholder="Pulsos por crédito"
+                value={machineForm.pulsesPerCredit}
+                onChange={(event) => setMachineForm({ ...machineForm, pulsesPerCredit: event.target.value })}
+              />
             </div>
-          ))}
+            <AdminButton
+              type="submit"
+              variant="primary"
+              disabled={saving || activeStores.length === 0}
+              className="w-full py-3"
+            >
+              Criar máquina
+            </AdminButton>
+          </AdminFormSection>
+
+          <div className="grid gap-3 xl:grid-cols-2">
+            {machines.length === 0 && <AdminEmptyState icon="🧸" message="Nenhuma máquina cadastrada." />}
+
+            {machines.map((machine) => (
+              <AdminCard key={machine.id}>
+                <p className="font-bold text-brand-black">{machine.name}</p>
+                <p className="text-sm text-gray-500">
+                  {machine.store.name} · {machine.telemetryId}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {machine.costPerGame} crédito/jogada · {machine.pulsesPerCredit} pulsos/crédito
+                </p>
+                <div className="mt-2 rounded-lg bg-surface-soft p-2 text-xs text-gray-500">
+                  <p className="break-all">QR máquina: {getQrUrl(`/qr/maquina/${machine.id}`)}</p>
+                  <p className="break-all">QR loja: {getQrUrl(`/qr/loja/${machine.store.id}`)}</p>
+                </div>
+                <form onSubmit={(event) => updateMachineRules(event, machine)} className="mt-3 grid gap-2">
+                  <input name="name" className={inputClass} defaultValue={machine.name} />
+                  <input name="imageUrl" className={inputClass} defaultValue={machine.imageUrl ?? ""} placeholder="URL da imagem" />
+                  <div className="grid grid-cols-3 gap-2">
+                    <input name="costPerGame" className={inputClass} inputMode="numeric" defaultValue={machine.costPerGame} />
+                    <input name="pulsesPerCredit" className={inputClass} inputMode="numeric" defaultValue={machine.pulsesPerCredit} />
+                    <select name="status" className={inputClass} defaultValue={machine.status}>
+                      <option value="AVAILABLE">Disponível</option>
+                      <option value="BUSY">Ocupada</option>
+                      <option value="MAINTENANCE">Manutenção</option>
+                    </select>
+                  </div>
+                  <AdminButton type="submit" variant="primary" disabled={saving}>
+                    Salvar regras
+                  </AdminButton>
+                </form>
+              </AdminCard>
+            ))}
+          </div>
         </section>
       )}
     </div>
