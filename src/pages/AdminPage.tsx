@@ -70,6 +70,23 @@ type CampaignForm = {
 const inputClass =
   "rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-brand-black outline-none transition-colors focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/20";
 
+const filterInputClass =
+  "h-11 rounded-xl border border-amber-100 bg-white px-3 text-sm font-medium text-brand-black outline-none shadow-sm transition-colors placeholder:text-gray-400 focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/20";
+
+type FilterableTab = Exclude<AdminTab, "summary">;
+type AdminFilters = Record<FilterableTab, { search: string; status: string }>;
+
+const defaultFilters: AdminFilters = {
+  users: { search: "", status: "ALL" },
+  transactions: { search: "", status: "ALL" },
+  gameplay: { search: "", status: "ALL" },
+  campaigns: { search: "", status: "ALL" },
+  packages: { search: "", status: "ALL" },
+  levels: { search: "", status: "ALL" },
+  stores: { search: "", status: "ALL" },
+  machines: { search: "", status: "ALL" },
+};
+
 const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
   { id: "summary", label: "Resumo", icon: "📊" },
   { id: "users", label: "Usuarios", icon: "👥" },
@@ -84,6 +101,98 @@ const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
 
 function toNumber(value: string): number {
   return Number(value.replace(",", "."));
+}
+
+function normalizeSearch(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function matchesSearch(search: string, fields: Array<string | number | null | undefined>): boolean {
+  const query = normalizeSearch(search.trim());
+  if (!query) {
+    return true;
+  }
+
+  return fields.some((field) => normalizeSearch(String(field ?? "")).includes(query));
+}
+
+function campaignMoment(campaign: Campaign): "UPCOMING" | "RUNNING" | "EXPIRED" {
+  const now = Date.now();
+  const startsAt = new Date(campaign.startsAt).getTime();
+  const endsAt = new Date(campaign.endsAt).getTime();
+
+  if (startsAt > now) {
+    return "UPCOMING";
+  }
+  if (endsAt < now) {
+    return "EXPIRED";
+  }
+  return "RUNNING";
+}
+
+function AdminFilterBar({
+  search,
+  status,
+  total,
+  filtered,
+  searchPlaceholder,
+  statusLabel = "Status",
+  statusOptions,
+  onSearchChange,
+  onStatusChange,
+  onClear,
+}: {
+  search: string;
+  status: string;
+  total: number;
+  filtered: number;
+  searchPlaceholder: string;
+  statusLabel?: string;
+  statusOptions: Array<{ value: string; label: string }>;
+  onSearchChange: (value: string) => void;
+  onStatusChange: (value: string) => void;
+  onClear: () => void;
+}) {
+  const hasFilters = Boolean(search.trim()) || status !== "ALL";
+
+  return (
+    <div className="rounded-2xl border border-white/80 bg-white/85 p-3 shadow-sm backdrop-blur">
+      <div className="grid gap-2 md:grid-cols-[1fr_220px_auto] md:items-center">
+        <div className="relative">
+          <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm">
+            🔎
+          </span>
+          <input
+            className={`${filterInputClass} w-full pl-9`}
+            placeholder={searchPlaceholder}
+            value={search}
+            onChange={(event) => onSearchChange(event.target.value)}
+          />
+        </div>
+        <select
+          className={`${filterInputClass} w-full`}
+          aria-label={statusLabel}
+          value={status}
+          onChange={(event) => onStatusChange(event.target.value)}
+        >
+          {statusOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <AdminButton type="button" variant="secondary" disabled={!hasFilters} onClick={onClear} className="h-11">
+          Limpar
+        </AdminButton>
+      </div>
+      <p className="mt-2 text-xs font-semibold text-gray-500">
+        Mostrando {filtered} de {total}
+      </p>
+    </div>
+  );
 }
 
 export function AdminPage() {
@@ -103,6 +212,7 @@ export function AdminPage() {
   const [loadingCompactPay, setLoadingCompactPay] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<AdminFilters>(defaultFilters);
 
   const [packageForm, setPackageForm] = useState<PackageForm>({
     name: "",
@@ -134,6 +244,147 @@ export function AdminPage() {
   });
 
   const activeStores = useMemo(() => stores.filter((store) => store.status === "ACTIVE"), [stores]);
+
+  const updateFilter = (tab: FilterableTab, field: "search" | "status", value: string) => {
+    setFilters((current) => ({
+      ...current,
+      [tab]: { ...current[tab], [field]: value },
+    }));
+  };
+
+  const clearFilter = (tab: FilterableTab) => {
+    setFilters((current) => ({ ...current, [tab]: defaultFilters[tab] }));
+  };
+
+  const filteredUsers = useMemo(() => {
+    const filter = filters.users;
+    return users.filter((user) => {
+      const statusMatches = filter.status === "ALL" || user.status === filter.status || user.role === filter.status;
+      return statusMatches && matchesSearch(filter.search, [user.name, user.email, user.cpf, user.status, user.role]);
+    });
+  }, [filters.users, users]);
+
+  const filteredTransactions = useMemo(() => {
+    const filter = filters.transactions;
+    return transactions.filter((transaction) => {
+      const statusMatches = filter.status === "ALL" || transaction.status === filter.status;
+      return (
+        statusMatches &&
+        matchesSearch(filter.search, [
+          transaction.user.name,
+          transaction.user.email,
+          transaction.package?.name,
+          transaction.amountBrl,
+          transaction.creditsAwarded,
+          transaction.mpPaymentId,
+          transaction.mpPreferenceId,
+        ])
+      );
+    });
+  }, [filters.transactions, transactions]);
+
+  const filteredGameplayLogs = useMemo(() => {
+    const filter = filters.gameplay;
+    return gameplayLogs.filter((log) => {
+      const statusMatches = filter.status === "ALL" || log.status === filter.status;
+      return (
+        statusMatches &&
+        matchesSearch(filter.search, [
+          log.user.name,
+          log.user.email,
+          log.machine.name,
+          log.machine.telemetryId,
+          log.machine.store.name,
+          log.creditsDebited,
+          log.pulsesSent,
+        ])
+      );
+    });
+  }, [filters.gameplay, gameplayLogs]);
+
+  const filteredCampaigns = useMemo(() => {
+    const filter = filters.campaigns;
+    return campaigns.filter((campaign) => {
+      const moment = campaignMoment(campaign);
+      const statusMatches =
+        filter.status === "ALL" ||
+        (filter.status === "ACTIVE" && campaign.active) ||
+        (filter.status === "INACTIVE" && !campaign.active) ||
+        filter.status === moment;
+      return (
+        statusMatches &&
+        matchesSearch(filter.search, [
+          campaign.name,
+          campaign.notes,
+          campaign.packageOverrides.map((override) => override.package.name).join(" "),
+          campaign.machineOverrides.map((override) => override.machine.name).join(" "),
+        ])
+      );
+    });
+  }, [campaigns, filters.campaigns]);
+
+  const filteredPackages = useMemo(() => {
+    const filter = filters.packages;
+    return packages.filter((creditPackage) => {
+      const statusMatches =
+        filter.status === "ALL" ||
+        (filter.status === "ACTIVE" && creditPackage.active) ||
+        (filter.status === "INACTIVE" && !creditPackage.active) ||
+        (filter.status === "POPULAR" && creditPackage.isPopular);
+      return (
+        statusMatches &&
+        matchesSearch(filter.search, [
+          creditPackage.name,
+          creditPackage.amountBrl,
+          creditPackage.baseCredits,
+          creditPackage.bonusCredits,
+        ])
+      );
+    });
+  }, [filters.packages, packages]);
+
+  const filteredLevels = useMemo(() => {
+    const filter = filters.levels;
+    return levels.filter((level) => {
+      const statusMatches = filter.status === "ALL" || level.status === filter.status;
+      return (
+        statusMatches &&
+        matchesSearch(filter.search, [
+          level.levelName,
+          level.requiredCredits,
+          level.bonusCreditsReward,
+          level.status,
+        ])
+      );
+    });
+  }, [filters.levels, levels]);
+
+  const filteredStores = useMemo(() => {
+    const filter = filters.stores;
+    return stores.filter((store) => {
+      const statusMatches = filter.status === "ALL" || store.status === filter.status;
+      return statusMatches && matchesSearch(filter.search, [store.name, store.location, store.status]);
+    });
+  }, [filters.stores, stores]);
+
+  const filteredMachines = useMemo(() => {
+    const filter = filters.machines;
+    return machines.filter((machine) => {
+      const statusMatches = filter.status === "ALL" || machine.status === filter.status || machine.store.id === filter.status;
+      return (
+        statusMatches &&
+        matchesSearch(filter.search, [
+          machine.name,
+          machine.telemetryId,
+          machine.store.name,
+          machine.store.location,
+          machine.status,
+          machine.costPerGame,
+          machine.pulsesPerCredit,
+        ])
+      );
+    });
+  }, [filters.machines, machines]);
 
   const loadAdminData = useCallback(async () => {
     setLoading(true);
@@ -652,11 +903,30 @@ export function AdminPage() {
 
       {!loading && activeTab === "users" && (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="sm:col-span-2 xl:col-span-3">
+            <AdminFilterBar
+              search={filters.users.search}
+              status={filters.users.status}
+              total={users.length}
+              filtered={filteredUsers.length}
+              searchPlaceholder="Buscar por nome, e-mail ou CPF"
+              statusOptions={[
+                { value: "ALL", label: "Todos" },
+                { value: "ACTIVE", label: "Ativos" },
+                { value: "BLOCKED", label: "Bloqueados" },
+                { value: "ADMIN", label: "Admins" },
+                { value: "CUSTOMER", label: "Clientes" },
+              ]}
+              onSearchChange={(value) => updateFilter("users", "search", value)}
+              onStatusChange={(value) => updateFilter("users", "status", value)}
+              onClear={() => clearFilter("users")}
+            />
+          </div>
           {users.length === 0 && (
             <AdminEmptyState icon="👥" message="Nenhum usuário encontrado." />
           )}
 
-          {users.map((user) => (
+          {filteredUsers.map((user) => (
             <AdminCard key={user.id}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -696,11 +966,29 @@ export function AdminPage() {
 
       {!loading && activeTab === "transactions" && (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="sm:col-span-2 xl:col-span-3">
+            <AdminFilterBar
+              search={filters.transactions.search}
+              status={filters.transactions.status}
+              total={transactions.length}
+              filtered={filteredTransactions.length}
+              searchPlaceholder="Buscar por cliente, pacote, valor ou ID do pagamento"
+              statusOptions={[
+                { value: "ALL", label: "Todas" },
+                { value: "PENDING", label: "Pendentes" },
+                { value: "APPROVED", label: "Aprovadas" },
+                { value: "FAILED", label: "Falhas" },
+              ]}
+              onSearchChange={(value) => updateFilter("transactions", "search", value)}
+              onStatusChange={(value) => updateFilter("transactions", "status", value)}
+              onClear={() => clearFilter("transactions")}
+            />
+          </div>
           {transactions.length === 0 && (
             <AdminEmptyState icon="💳" message="Nenhuma transação encontrada." />
           )}
 
-          {transactions.map((transaction) => (
+          {filteredTransactions.map((transaction) => (
             <AdminCard key={transaction.id}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -750,11 +1038,28 @@ export function AdminPage() {
 
       {!loading && activeTab === "gameplay" && (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="sm:col-span-2 xl:col-span-3">
+            <AdminFilterBar
+              search={filters.gameplay.search}
+              status={filters.gameplay.status}
+              total={gameplayLogs.length}
+              filtered={filteredGameplayLogs.length}
+              searchPlaceholder="Buscar por usuário, máquina, loja ou telemetryId"
+              statusOptions={[
+                { value: "ALL", label: "Todas" },
+                { value: "SUCCESS", label: "Sucesso" },
+                { value: "FAILED", label: "Falhas" },
+              ]}
+              onSearchChange={(value) => updateFilter("gameplay", "search", value)}
+              onStatusChange={(value) => updateFilter("gameplay", "status", value)}
+              onClear={() => clearFilter("gameplay")}
+            />
+          </div>
           {gameplayLogs.length === 0 && (
             <AdminEmptyState icon="🕹️" message="Nenhuma jogada encontrada." />
           )}
 
-          {gameplayLogs.map((log) => (
+          {filteredGameplayLogs.map((log) => (
             <AdminCard key={log.id}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -814,9 +1119,28 @@ export function AdminPage() {
             </AdminButton>
           </AdminFormSection>
 
+          <AdminFilterBar
+            search={filters.campaigns.search}
+            status={filters.campaigns.status}
+            total={campaigns.length}
+            filtered={filteredCampaigns.length}
+            searchPlaceholder="Buscar por campanha, observação, pacote ou máquina"
+            statusOptions={[
+              { value: "ALL", label: "Todas" },
+              { value: "ACTIVE", label: "Ativas" },
+              { value: "INACTIVE", label: "Inativas" },
+              { value: "RUNNING", label: "Em andamento" },
+              { value: "UPCOMING", label: "Futuras" },
+              { value: "EXPIRED", label: "Encerradas" },
+            ]}
+            onSearchChange={(value) => updateFilter("campaigns", "search", value)}
+            onStatusChange={(value) => updateFilter("campaigns", "status", value)}
+            onClear={() => clearFilter("campaigns")}
+          />
+
           {campaigns.length === 0 && <AdminEmptyState icon="🎯" message="Nenhuma campanha cadastrada." />}
 
-          {campaigns.map((campaign) => (
+          {filteredCampaigns.map((campaign) => (
             <AdminCard key={campaign.id}>
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -981,10 +1305,27 @@ export function AdminPage() {
             </AdminButton>
           </AdminFormSection>
 
+          <AdminFilterBar
+            search={filters.packages.search}
+            status={filters.packages.status}
+            total={packages.length}
+            filtered={filteredPackages.length}
+            searchPlaceholder="Buscar por nome, valor, créditos ou bônus"
+            statusOptions={[
+              { value: "ALL", label: "Todos" },
+              { value: "ACTIVE", label: "Ativos" },
+              { value: "INACTIVE", label: "Inativos" },
+              { value: "POPULAR", label: "Populares" },
+            ]}
+            onSearchChange={(value) => updateFilter("packages", "search", value)}
+            onStatusChange={(value) => updateFilter("packages", "status", value)}
+            onClear={() => clearFilter("packages")}
+          />
+
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {packages.length === 0 && <AdminEmptyState icon="🎁" message="Nenhum pacote cadastrado." />}
 
-            {packages.map((creditPackage) => (
+            {filteredPackages.map((creditPackage) => (
               <AdminCard key={creditPackage.id}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -1060,10 +1401,26 @@ export function AdminPage() {
             </AdminButton>
           </AdminFormSection>
 
+          <AdminFilterBar
+            search={filters.levels.search}
+            status={filters.levels.status}
+            total={levels.length}
+            filtered={filteredLevels.length}
+            searchPlaceholder="Buscar por nível, créditos requeridos ou bônus"
+            statusOptions={[
+              { value: "ALL", label: "Todos" },
+              { value: "ACTIVE", label: "Ativos" },
+              { value: "DRAFT", label: "Rascunhos" },
+            ]}
+            onSearchChange={(value) => updateFilter("levels", "search", value)}
+            onStatusChange={(value) => updateFilter("levels", "status", value)}
+            onClear={() => clearFilter("levels")}
+          />
+
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {levels.length === 0 && <AdminEmptyState icon="🏆" message="Nenhum nível cadastrado." />}
 
-            {levels.map((level) => (
+            {filteredLevels.map((level) => (
               <AdminCard key={level.id}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -1118,10 +1475,26 @@ export function AdminPage() {
             </AdminButton>
           </AdminFormSection>
 
+          <AdminFilterBar
+            search={filters.stores.search}
+            status={filters.stores.status}
+            total={stores.length}
+            filtered={filteredStores.length}
+            searchPlaceholder="Buscar por loja, localização ou status"
+            statusOptions={[
+              { value: "ALL", label: "Todas" },
+              { value: "ACTIVE", label: "Ativas" },
+              { value: "INACTIVE", label: "Inativas" },
+            ]}
+            onSearchChange={(value) => updateFilter("stores", "search", value)}
+            onStatusChange={(value) => updateFilter("stores", "status", value)}
+            onClear={() => clearFilter("stores")}
+          />
+
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {stores.length === 0 && <AdminEmptyState icon="🏬" message="Nenhuma loja cadastrada." />}
 
-            {stores.map((store) => (
+            {filteredStores.map((store) => (
               <AdminCard key={store.id}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -1240,10 +1613,29 @@ export function AdminPage() {
             </AdminButton>
           </AdminFormSection>
 
+          <AdminFilterBar
+            search={filters.machines.search}
+            status={filters.machines.status}
+            total={machines.length}
+            filtered={filteredMachines.length}
+            searchPlaceholder="Buscar por máquina, loja, localização ou telemetryId"
+            statusLabel="Status ou loja"
+            statusOptions={[
+              { value: "ALL", label: "Todas" },
+              { value: "AVAILABLE", label: "Disponíveis" },
+              { value: "BUSY", label: "Ocupadas" },
+              { value: "MAINTENANCE", label: "Manutenção" },
+              ...stores.map((store) => ({ value: store.id, label: `Loja: ${store.name}` })),
+            ]}
+            onSearchChange={(value) => updateFilter("machines", "search", value)}
+            onStatusChange={(value) => updateFilter("machines", "status", value)}
+            onClear={() => clearFilter("machines")}
+          />
+
           <div className="grid gap-3 xl:grid-cols-2">
             {machines.length === 0 && <AdminEmptyState icon="🧸" message="Nenhuma máquina cadastrada." />}
 
-            {machines.map((machine) => (
+            {filteredMachines.map((machine) => (
               <AdminCard key={machine.id}>
                 <p className="font-bold text-brand-black">{machine.name}</p>
                 <p className="text-sm text-gray-500">
