@@ -48,8 +48,11 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   });
 
   if (!response.ok) {
+    const responseCopy = response.clone();
     const data = await response.json().catch(() => null);
-    throw new ApiError(response.status, data?.message || "Erro ao comunicar com o servidor");
+    const fallback = await response.text().catch(() => "");
+    const fallbackFromCopy = fallback || (await responseCopy.text().catch(() => ""));
+    throw new ApiError(response.status, data?.message || fallbackFromCopy || "Erro ao comunicar com o servidor");
   }
 
   if (response.status === 204) return undefined as T;

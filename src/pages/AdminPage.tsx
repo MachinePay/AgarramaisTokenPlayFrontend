@@ -581,7 +581,13 @@ export function AdminPage() {
     setSaving(true);
     setError(null);
     const data = new FormData(event.currentTarget);
-    const credits = toNumber(String(data.get("credits") || "0"));
+    const credits = Number.parseInt(String(data.get("credits") || "0"), 10);
+
+    if (!Number.isInteger(credits) || credits <= 0) {
+      setSaving(false);
+      setError("Informe uma quantidade inteira maior que zero para enviar creditos");
+      return;
+    }
 
     try {
       await apiRequest<AdminUser>(`/admin/users/${user.id}/credits`, {
@@ -591,7 +597,11 @@ export function AdminPage() {
       event.currentTarget.reset();
       await loadAdminData();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Nao foi possivel enviar creditos");
+      if (err instanceof ApiError && err.status === 404) {
+        setError("A rota de envio de creditos ainda nao esta no backend publicado. Faca deploy do backend.");
+      } else {
+        setError(err instanceof Error ? err.message : "Nao foi possivel enviar creditos");
+      }
     } finally {
       setSaving(false);
     }
