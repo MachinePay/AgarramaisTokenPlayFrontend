@@ -53,6 +53,8 @@ export type Transaction = {
   amountBrl: string;
   creditsAwarded: number;
   checkoutUrl: string | null;
+  pixQrCode?: string;
+  pixQrCodeBase64?: string;
 };
 
 export type AdminTransaction = Transaction & {

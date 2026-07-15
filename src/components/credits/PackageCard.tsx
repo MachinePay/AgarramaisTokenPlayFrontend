@@ -4,9 +4,10 @@ type PackageCardProps = {
   creditPackage: CreditPackage;
   loading: boolean;
   onBuy: (creditPackage: CreditPackage) => void;
+  onBuyPix: (creditPackage: CreditPackage) => void;
 };
 
-export function PackageCard({ creditPackage, loading, onBuy }: PackageCardProps) {
+export function PackageCard({ creditPackage, loading, onBuy, onBuyPix }: PackageCardProps) {
   const totalCredits = creditPackage.baseCredits + creditPackage.bonusCredits;
   const isRecommended = creditPackage.isPopular;
 
@@ -71,18 +72,30 @@ export function PackageCard({ creditPackage, loading, onBuy }: PackageCardProps)
         </div>
       )}
 
-      <button
-        type="button"
-        disabled={loading}
-        onClick={() => onBuy(creditPackage)}
-        className={`relative mt-5 w-full rounded-2xl py-3.5 text-sm font-black shadow-lg transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 ${
-          isRecommended
-            ? "bg-brand-black text-white shadow-slate-900/20"
-            : "bg-gradient-to-r from-brand-yellow to-orange-400 text-brand-black shadow-amber-500/25"
-        }`}
-      >
-        {loading ? "Gerando pagamento..." : "Comprar com Cartão ou Pix"}
-      </button>
+      <div className="relative mt-5 grid gap-2">
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => onBuyPix(creditPackage)}
+          className={`w-full rounded-2xl py-3.5 text-sm font-black shadow-lg transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 ${
+            isRecommended
+              ? "bg-brand-black text-white shadow-slate-900/20"
+              : "bg-gradient-to-r from-brand-yellow to-orange-400 text-brand-black shadow-amber-500/25"
+          }`}
+        >
+          {loading ? "Gerando Pix..." : "Pagar com Pix"}
+        </button>
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => onBuy(creditPackage)}
+          className={`w-full rounded-2xl border py-3 text-xs font-black transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:active:scale-100 ${
+            isRecommended ? "border-brand-black/15 text-brand-black" : "border-white/15 text-white"
+          }`}
+        >
+          Cartao ou Mercado Pago
+        </button>
+      </div>
     </div>
   );
 }
