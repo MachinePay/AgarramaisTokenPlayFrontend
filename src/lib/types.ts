@@ -11,6 +11,7 @@ export type Store = {
   name: string;
   location: string;
   status: "ACTIVE" | "INACTIVE";
+  isFavorite?: boolean;
 };
 
 export type MachineStatus = "AVAILABLE" | "BUSY" | "MAINTENANCE";

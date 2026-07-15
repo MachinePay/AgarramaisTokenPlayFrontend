@@ -22,7 +22,7 @@ export function InicioPage() {
     Promise.all([
       apiRequest<Campaign[]>("/campaigns/active").catch(() => []),
       apiRequest<CreditPackage[]>("/packages/home").catch(() => []),
-      apiRequest<Store[]>("/stores").catch(() => []),
+      apiRequest<Store[]>("/stores/me").catch(() => []),
     ])
       .then(([campaignsData, packagesData, storesData]) => {
         setCampaigns(campaignsData);

@@ -12,25 +12,52 @@ export function LojasPage() {
   const [stores, setStores] = useState<Store[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [favoriteLoadingId, setFavoriteLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
-    apiRequest<Store[]>("/stores")
+    apiRequest<Store[]>("/stores/me")
       .then(setStores)
       .finally(() => setLoading(false));
   }, []);
 
   const filteredStores = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return stores;
-    return stores.filter(
-      (store) =>
-        store.name.toLowerCase().includes(term) || store.location.toLowerCase().includes(term),
+    const visibleStores = term
+      ? stores.filter(
+          (store) =>
+            store.name.toLowerCase().includes(term) || store.location.toLowerCase().includes(term),
+        )
+      : stores;
+
+    return [...visibleStores].sort(
+      (a, b) => Number(Boolean(b.isFavorite)) - Number(Boolean(a.isFavorite)) || a.name.localeCompare(b.name),
     );
   }, [stores, search]);
 
   function handleSelect(store: Store) {
     selectStore(store.id, store.name);
     navigate(`/lojas/${store.id}`);
+  }
+
+  async function toggleFavorite(store: Store) {
+    const nextFavorite = !store.isFavorite;
+    setFavoriteLoadingId(store.id);
+    setStores((current) =>
+      current.map((item) => (item.id === store.id ? { ...item, isFavorite: nextFavorite } : item)),
+    );
+
+    try {
+      await apiRequest(`/stores/${store.id}/favorite`, {
+        method: "PUT",
+        body: { favorite: nextFavorite },
+      });
+    } catch {
+      setStores((current) =>
+        current.map((item) => (item.id === store.id ? { ...item, isFavorite: store.isFavorite } : item)),
+      );
+    } finally {
+      setFavoriteLoadingId(null);
+    }
   }
 
   return (
@@ -53,7 +80,13 @@ export function LojasPage() {
 
       <div className="flex flex-col gap-3">
         {filteredStores.map((store) => (
-          <StoreCard key={store.id} store={store} onSelect={handleSelect} />
+          <StoreCard
+            key={store.id}
+            store={store}
+            onSelect={handleSelect}
+            onToggleFavorite={toggleFavorite}
+            favoriteLoading={favoriteLoadingId === store.id}
+          />
         ))}
       </div>
     </div>
