@@ -127,9 +127,9 @@ export function InicioPage() {
             <button
               type="button"
               onClick={goToFirstStore}
-              className="rounded-2xl border border-white/15 bg-white/10 px-5 py-3.5 text-sm font-black text-white transition active:scale-[0.98]"
+              className="home-cta rounded-[1.35rem] border border-brand-yellow/35 bg-gradient-to-r from-brand-yellow via-amber-400 to-orange-400 px-5 py-5 text-xl font-black uppercase tracking-wide text-brand-black shadow-[0_18px_36px_rgba(245,158,11,0.36)] transition active:scale-[0.98]"
             >
-              Escolher máquina para jogar
+              Jogar
             </button>
           </div>
         </div>

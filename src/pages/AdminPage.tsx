@@ -1391,25 +1391,31 @@ export function AdminPage() {
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
                   <AdminTag tone={user.role === "ADMIN" ? "black" : "gray"}>{user.role}</AdminTag>
                   <AdminTag tone={user.status === "ACTIVE" ? "green" : "red"}>{user.status}</AdminTag>
+                  {user.protected && <AdminTag tone="amber">ADMIN MAXIMO</AdminTag>}
                 </div>
               </div>
 
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <AdminButton
                   variant={user.status === "ACTIVE" ? "danger" : "secondary"}
-                  disabled={saving}
+                  disabled={saving || user.protected}
                   onClick={() => updateUser(user, { status: user.status === "ACTIVE" ? "BLOCKED" : "ACTIVE" })}
                 >
-                  {user.status === "ACTIVE" ? "Bloquear" : "Desbloquear"}
+                  {user.protected ? "Protegido" : user.status === "ACTIVE" ? "Bloquear" : "Desbloquear"}
                 </AdminButton>
                 <AdminButton
                   variant="primary"
-                  disabled={saving}
+                  disabled={saving || user.protected}
                   onClick={() => updateUser(user, { role: user.role === "ADMIN" ? "CUSTOMER" : "ADMIN" })}
                 >
-                  {user.role === "ADMIN" ? "Rebaixar" : "Promover"}
+                  {user.protected ? "Admin maximo" : user.role === "ADMIN" ? "Rebaixar" : "Promover"}
                 </AdminButton>
               </div>
+              {user.protected && (
+                <p className="mt-2 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
+                  Este cadastro e o admin maximo. Ele nao pode ser rebaixado nem bloqueado.
+                </p>
+              )}
               <form
                 onSubmit={(event) => grantCreditsToUser(event, user)}
                 className="mt-3 rounded-2xl bg-amber-50 p-3"
@@ -1437,11 +1443,11 @@ export function AdminPage() {
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   <input name="password" className={inputClass} type="password" placeholder="Nova senha" />
-                  <select name="role" className={inputClass} defaultValue={user.role}>
+                  <select name="role" className={inputClass} defaultValue={user.role} disabled={user.protected}>
                     <option value="CUSTOMER">Cliente</option>
                     <option value="ADMIN">Admin</option>
                   </select>
-                  <select name="status" className={inputClass} defaultValue={user.status}>
+                  <select name="status" className={inputClass} defaultValue={user.status} disabled={user.protected}>
                     <option value="ACTIVE">Ativo</option>
                     <option value="BLOCKED">Bloqueado</option>
                   </select>

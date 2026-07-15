@@ -74,6 +74,7 @@ export type AdminUser = {
   creditBalance: number;
   totalCreditsPurchased: number;
   createdAt: string;
+  protected?: boolean;
 };
 
 export type LoyaltyLevel = {
