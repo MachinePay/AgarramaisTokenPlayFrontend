@@ -1047,6 +1047,125 @@ export function AdminPage() {
     return `${window.location.origin}${path}`;
   }
 
+  function escapePrintText(value: string): string {
+    return value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function printMachineQr(machine: AdminMachine) {
+    const machineQrUrl = getQrUrl(`/qr/maquina/${machine.id}`);
+    const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=16&data=${encodeURIComponent(
+      machineQrUrl,
+    )}`;
+    const printWindow = window.open("", "_blank", "width=520,height=760");
+
+    if (!printWindow) {
+      setError("Nao foi possivel abrir a janela de impressao. Libere pop-ups para imprimir o QR Code.");
+      return;
+    }
+
+    printWindow.document.write(`
+      <!doctype html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>QR Code - ${escapePrintText(machine.name)}</title>
+          <style>
+            @page { size: auto; margin: 12mm; }
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              min-height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-family: Arial, sans-serif;
+              color: #111827;
+            }
+            .label {
+              width: 100%;
+              max-width: 420px;
+              border: 3px solid #111827;
+              border-radius: 24px;
+              padding: 24px;
+              text-align: center;
+            }
+            .brand {
+              font-size: 28px;
+              font-weight: 900;
+              margin: 0;
+            }
+            .subtitle {
+              margin: 4px 0 18px;
+              color: #f59e0b;
+              font-size: 13px;
+              font-weight: 900;
+              letter-spacing: 0.18em;
+              text-transform: uppercase;
+            }
+            .qr {
+              width: 100%;
+              max-width: 330px;
+              aspect-ratio: 1;
+              margin: 0 auto;
+              display: block;
+            }
+            .machine {
+              margin: 18px 0 4px;
+              font-size: 26px;
+              font-weight: 900;
+            }
+            .meta {
+              margin: 4px 0;
+              color: #4b5563;
+              font-size: 15px;
+              font-weight: 700;
+            }
+            .hint {
+              margin: 18px 0 0;
+              border-radius: 16px;
+              background: #fef3c7;
+              padding: 12px;
+              font-size: 16px;
+              font-weight: 900;
+            }
+            .url {
+              margin-top: 14px;
+              word-break: break-all;
+              color: #6b7280;
+              font-size: 10px;
+            }
+            @media print {
+              .label { break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <main class="label">
+            <p class="brand">Agarra Mais</p>
+            <p class="subtitle">Token Play</p>
+            <img class="qr" src="${qrImageUrl}" alt="QR Code da maquina" />
+            <p class="machine">${escapePrintText(machine.name)}</p>
+            <p class="meta">${escapePrintText(machine.store.name)}</p>
+            <p class="meta">ID ${escapePrintText(machine.telemetryId)}</p>
+            <p class="hint">Aponte a camera e jogue com suas fichas</p>
+            <p class="url">${escapePrintText(machineQrUrl)}</p>
+          </main>
+          <script>
+            const img = document.querySelector(".qr");
+            const printNow = () => setTimeout(() => { window.focus(); window.print(); }, 250);
+            if (img.complete) printNow();
+            else img.addEventListener("load", printNow, { once: true });
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+
   return (
     <div className="flex flex-col gap-5 py-5">
       <div className="relative overflow-hidden rounded-3xl bg-slate-950 px-5 py-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.22)] sm:px-7">
@@ -2181,6 +2300,14 @@ export function AdminPage() {
                   <p className="break-all">QR máquina: {getQrUrl(`/qr/maquina/${machine.id}`)}</p>
                   <p className="break-all">QR loja: {getQrUrl(`/qr/loja/${machine.store.id}`)}</p>
                 </div>
+                <AdminButton
+                  type="button"
+                  variant="secondary"
+                  className="mt-3 w-full py-3"
+                  onClick={() => printMachineQr(machine)}
+                >
+                  Imprimir QR da maquina
+                </AdminButton>
                 <form onSubmit={(event) => updateMachineRules(event, machine)} className="mt-3 grid gap-2">
                   <input name="name" className={inputClass} defaultValue={machine.name} />
                   <input name="imageUrl" className={inputClass} defaultValue={machine.imageUrl ?? ""} placeholder="URL da imagem" />
