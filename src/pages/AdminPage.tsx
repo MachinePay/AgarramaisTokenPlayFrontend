@@ -394,8 +394,8 @@ function ReportDailyChart({ daily }: { daily: AdminOperationsReport["series"]["d
   );
 }
 
-export function AdminPage() {
-  const [activeTab, setActiveTab] = useState<AdminTab>("summary");
+export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab }) {
+  const [activeTab, setActiveTab] = useState<AdminTab>(initialTab);
   const [summary, setSummary] = useState<AdminDashboardSummary | null>(null);
   const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [loyaltyDistribution, setLoyaltyDistribution] = useState<LoyaltyDistribution | null>(null);

@@ -93,6 +93,14 @@ function App() {
         }
       />
       <Route
+        path="/admin/relatorios"
+        element={
+          <RequireAuth wide>
+            <AdminPage initialTab="reports" />
+          </RequireAuth>
+        }
+      />
+      <Route
         path="/qr/loja/:storeId"
         element={
           <RequireAuth>

@@ -30,9 +30,12 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
   const logout = useAuthStore((state) => state.logout);
   const navbar = useAuthStore((state) => state.navbar);
   const links = isAdminToken()
-    ? [...LINKS, { to: "/admin", label: "Admin", description: "Gestao completa", icon: "⚙️" }]
+    ? [
+        ...LINKS,
+        { to: "/admin", label: "Admin", description: "Gestao completa", icon: "⚙️" },
+        { to: "/admin/relatorios", label: "Relatorios", description: "Indicadores e rankings", icon: "📈" },
+      ]
     : LINKS;
-
   const name = navbar?.name ?? "Agarra Mais";
   const creditBalance = navbar?.creditBalance ?? 0;
   const levelName = navbar?.currentLevelName ?? "Iniciante";
