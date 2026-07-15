@@ -54,7 +54,7 @@ export function TopNavbar({ wide = false }: { wide?: boolean }) {
                 wide ? "text-brand-yellow" : "text-brand-yellow"
               }`}
             >
-              {creditBalance} Créditos
+              {creditBalance} Fichas
             </span>
             <span className={`truncate text-xs italic ${wide ? "text-white/55" : "text-white/55"}`}>
               Nível {levelName}

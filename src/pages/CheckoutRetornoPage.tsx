@@ -87,7 +87,7 @@ export function CheckoutRetornoPage({ expectedStatus }: CheckoutRetornoPageProps
         </h1>
         <p className="mt-2 text-sm text-gray-500">
           {approved
-            ? `${transaction.creditsAwarded} creditos foram adicionados ao seu saldo.`
+            ? `${transaction.creditsAwarded} fichas foram adicionadas ao seu saldo.`
             : failed
               ? "A compra nao foi confirmada. Voce pode tentar novamente quando quiser."
               : "Estamos confirmando sua compra. Pix pode levar alguns instantes para aparecer."}
@@ -105,10 +105,10 @@ export function CheckoutRetornoPage({ expectedStatus }: CheckoutRetornoPageProps
           Ver maquinas
         </Link>
         <Link
-          to="/creditos"
+          to="/fichas"
           className="rounded-xl border border-gray-200 py-3.5 text-base font-bold text-brand-black"
         >
-          Comprar creditos
+          Comprar fichas
         </Link>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { setPendingTransactionId } from "@/lib/checkout";
 import type { AdminSettings, CreditPackage, Transaction } from "@/lib/types";
 import { PackageCard } from "@/components/credits/PackageCard";
 
-export function CreditosPage() {
+export function FichasPage() {
   const [packages, setPackages] = useState<CreditPackage[]>([]);
   const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [customCredits, setCustomCredits] = useState("1");
@@ -85,7 +85,7 @@ export function CreditosPage() {
             <span aria-hidden className="text-3xl">
               💳
             </span>
-            <h1 className="text-3xl font-black text-white">Loja de Créditos</h1>
+            <h1 className="text-3xl font-black text-white">Loja de Fichas</h1>
           </div>
           <p className="mt-2 text-sm font-medium text-white/65">Compre fichas avulsas ou aproveite pacotes com bônus.</p>
           <div className="mt-5 grid grid-cols-2 gap-2">

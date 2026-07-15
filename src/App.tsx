@@ -1,11 +1,11 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "@/components/layout/RequireAuth";
 import { EntrarPage } from "@/pages/EntrarPage";
 import { LandingPage } from "@/pages/LandingPage";
 import { InicioPage } from "@/pages/InicioPage";
 import { LojasPage } from "@/pages/LojasPage";
 import { VitrinePage } from "@/pages/VitrinePage";
-import { CreditosPage } from "@/pages/CreditosPage";
+import { FichasPage } from "@/pages/FichasPage";
 import { CheckoutRetornoPage } from "@/pages/CheckoutRetornoPage";
 import { AdminPage } from "@/pages/AdminPage";
 import { HistoricoPage } from "@/pages/HistoricoPage";
@@ -44,13 +44,14 @@ function App() {
         }
       />
       <Route
-        path="/creditos"
+        path="/fichas"
         element={
           <RequireAuth>
-            <CreditosPage />
+            <FichasPage />
           </RequireAuth>
         }
       />
+      <Route path="/creditos" element={<Navigate to="/fichas" replace />} />
       <Route
         path="/historico"
         element={

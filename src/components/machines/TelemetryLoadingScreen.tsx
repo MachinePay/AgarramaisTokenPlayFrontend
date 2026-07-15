@@ -1,7 +1,7 @@
 import { BrandMark } from "@/components/ui/BrandMark";
 
 /**
- * Estado de transicao exibido enquanto o backend desconta os creditos e
+ * Estado de transicao exibido enquanto o backend desconta as fichas e
  * dispara os pulsos na CompactPay. Substitui o conteudo do modal.
  */
 export function TelemetryLoadingScreen() {

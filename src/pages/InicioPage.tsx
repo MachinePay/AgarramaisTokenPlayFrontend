@@ -109,7 +109,7 @@ export function InicioPage() {
           <div className="mt-5 grid grid-cols-2 gap-2">
             <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/15">
               <p className="text-2xl font-black text-brand-yellow">{navbar?.creditBalance ?? 0}</p>
-              <p className="text-[11px] font-bold uppercase text-white/50">Créditos</p>
+              <p className="text-[11px] font-bold uppercase text-white/50">Fichas</p>
             </div>
             <div className="rounded-2xl bg-white/10 p-3 ring-1 ring-white/15">
               <p className="truncate text-base font-black text-white">Nível {navbar?.currentLevelName ?? "Iniciante"}</p>
@@ -119,7 +119,7 @@ export function InicioPage() {
 
           <div className="mt-5 grid gap-3">
             <Link
-              to="/creditos"
+              to="/fichas"
               className="home-cta inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-brand-yellow to-orange-400 px-5 py-4 text-base font-black text-brand-black shadow-[0_16px_28px_rgba(245,158,11,0.28)]"
             >
               Comprar fichas agora
@@ -155,7 +155,7 @@ export function InicioPage() {
                 <h2 className="text-xl font-black text-brand-black">Ofertas para jogar hoje</h2>
                 <p className="text-sm font-medium text-gray-500">Promoções ativas e bônus para aproveitar.</p>
               </div>
-              <Link to="/creditos" className="text-sm font-black text-orange-600">
+              <Link to="/fichas" className="text-sm font-black text-orange-600">
                 Ver loja
               </Link>
             </div>
@@ -170,7 +170,7 @@ export function InicioPage() {
                   Escolha a quantidade de fichas que quiser e comece a jogar em poucos segundos.
                 </p>
                 <Link
-                  to="/creditos"
+                  to="/fichas"
                   className="mt-4 inline-flex w-full justify-center rounded-2xl bg-brand-black px-4 py-3 text-sm font-black text-white"
                 >
                   Comprar fichas

@@ -57,7 +57,7 @@ export function PlayActivationModal({
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-lg font-bold text-brand-black">{machine.name}</h2>
-                <p className="text-sm text-gray-500">Saldo atual: {creditBalance} Créditos</p>
+                <p className="text-sm text-gray-500">Saldo atual: {creditBalance} Fichas</p>
               </div>
               <button
                 type="button"
@@ -75,7 +75,7 @@ export function PlayActivationModal({
               </span>
               <QuantityStepper value={quantity} onChange={setQuantity} />
               <span className="text-sm font-semibold text-brand-black">
-                Custo total: {totalCost} Créditos
+                Custo total: {totalCost} Fichas
               </span>
             </div>
 
@@ -108,7 +108,7 @@ export function PlayActivationModal({
               Máquina Liberada! Boa sorte! 🧸
             </p>
             <p className="text-center text-sm text-gray-500">
-              {result.creditsDebited} créditos debitados · saldo restante: {result.remainingBalance}
+              {result.creditsDebited} fichas debitadas · saldo restante: {result.remainingBalance}
             </p>
             <button
               type="button"

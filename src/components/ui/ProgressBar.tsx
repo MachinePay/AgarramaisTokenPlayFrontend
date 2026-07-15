@@ -1,7 +1,7 @@
 type ProgressBarProps = {
   percentage: number;
   className?: string;
-  /** Muda sempre que o usuario ganha credito - remonta o emoji pra replayar o bounce. */
+  /** Muda sempre que o usuario ganha ficha - remonta o emoji pra replayar o bounce. */
   celebrateKey?: number;
 };
 

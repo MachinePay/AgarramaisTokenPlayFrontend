@@ -10,7 +10,7 @@ type SidebarDrawerProps = {
 const LINKS = [
   { to: "/inicio", label: "Inicio", description: "Promocoes e ofertas", icon: "🎯" },
   { to: "/lojas", label: "Lojas", description: "Escolher unidade", icon: "🏬" },
-  { to: "/creditos", label: "Loja de Creditos", description: "Comprar fichas", icon: "💳" },
+  { to: "/fichas", label: "Loja de Fichas", description: "Comprar fichas", icon: "💳" },
 ];
 
 function isAdminToken(): boolean {
@@ -83,7 +83,7 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
             <div className="mt-1 flex items-end justify-between gap-3">
               <div>
                 <p className="text-2xl font-black text-brand-yellow">{creditBalance}</p>
-                <p className="text-xs font-bold uppercase text-white/50">Creditos</p>
+                <p className="text-xs font-bold uppercase text-white/50">Fichas</p>
               </div>
               <div className="text-right">
                 <p className="text-sm font-bold text-white">Nivel {levelName}</p>

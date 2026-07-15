@@ -650,7 +650,7 @@ export function AdminPage() {
 
     if (!Number.isInteger(credits) || credits <= 0) {
       setSaving(false);
-      setError("Informe uma quantidade inteira maior que zero para enviar creditos");
+      setError("Informe uma quantidade inteira maior que zero para enviar fichas");
       return;
     }
 
@@ -663,9 +663,9 @@ export function AdminPage() {
       await loadAdminData();
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
-        setError("A rota de envio de creditos ainda nao esta no backend publicado. Faca deploy do backend.");
+        setError("A rota de envio de fichas ainda nao esta no backend publicado. Faca deploy do backend.");
       } else {
-        setError(err instanceof Error ? err.message : "Nao foi possivel enviar creditos");
+        setError(err instanceof Error ? err.message : "Nao foi possivel enviar fichas");
       }
     } finally {
       setSaving(false);
@@ -1264,7 +1264,7 @@ export function AdminPage() {
                   <p className="truncate font-bold text-brand-black">{user.name}</p>
                   <p className="truncate text-sm text-gray-500">{user.email}</p>
                   <p className="text-sm text-gray-500">
-                    Saldo {user.creditBalance} · Comprados {user.totalCreditsPurchased}
+                    Saldo {user.creditBalance} fichas · Compradas {user.totalCreditsPurchased}
                   </p>
                   <p className="text-xs text-gray-500">CPF {user.cpf}</p>
                   <p className="text-xs text-gray-500">Telefone {user.phone || "Nao informado"}</p>
@@ -1295,7 +1295,7 @@ export function AdminPage() {
                 onSubmit={(event) => grantCreditsToUser(event, user)}
                 className="mt-3 rounded-2xl bg-amber-50 p-3"
               >
-                <p className="mb-2 text-xs font-black uppercase text-amber-700">Enviar créditos</p>
+                <p className="mb-2 text-xs font-black uppercase text-amber-700">Enviar fichas</p>
                 <div className="grid grid-cols-[1fr_auto] gap-2">
                   <input
                     name="credits"
@@ -1372,7 +1372,7 @@ export function AdminPage() {
                   <p className="truncate text-sm text-gray-500">{transaction.user.email}</p>
                   <p className="mt-1 text-sm text-gray-500">
                     {transaction.package?.name ?? "Pacote removido"} · R${" "}
-                    {Number(transaction.amountBrl).toFixed(2)} · {transaction.creditsAwarded} créditos
+                    {Number(transaction.amountBrl).toFixed(2)} · {transaction.creditsAwarded} fichas
                   </p>
                   <p className="text-xs text-gray-500">{formatDate(transaction.createdAt)}</p>
                 </div>
@@ -1434,7 +1434,7 @@ export function AdminPage() {
                     {log.user.name} · {log.user.email}
                   </p>
                   <p className="mt-1 text-sm text-gray-500">
-                    {log.creditsDebited} créditos · {log.pulsesSent} pulsos
+                    {log.creditsDebited} fichas · {log.pulsesSent} pulsos
                   </p>
                   <p className="text-xs text-gray-500">{formatDate(log.createdAt)}</p>
                 </div>
@@ -1620,7 +1620,7 @@ export function AdminPage() {
                     name="baseCredits"
                     className={inputClass}
                     inputMode="numeric"
-                    placeholder="Créditos"
+                    placeholder="Fichas"
                     required
                   />
                   <input
@@ -1684,13 +1684,13 @@ export function AdminPage() {
                   {campaign.packageOverrides.map((override) => (
                     <p key={override.id}>
                       Pacote: {override.package.name} · R$ {Number(override.amountBrl).toFixed(2)} ·{" "}
-                      {override.baseCredits + override.bonusCredits} créditos
+                      {override.baseCredits + override.bonusCredits} fichas
                     </p>
                   ))}
                   {campaign.machineOverrides.map((override) => (
                     <p key={override.id}>
-                      Máquina: {override.machine.name} · {override.costPerGame} crédito/jogada ·{" "}
-                      {override.pulsesPerCredit} pulsos/crédito
+                      Máquina: {override.machine.name} · {override.costPerGame} ficha/jogada ·{" "}
+                      {override.pulsesPerCredit} pulsos/ficha
                     </p>
                   ))}
                 </div>
@@ -1737,7 +1737,7 @@ export function AdminPage() {
             </div>
           </AdminFormSection>
 
-          <AdminFormSection title="Criar pacote de créditos" onSubmit={submitPackage}>
+          <AdminFormSection title="Criar pacote de fichas" onSubmit={submitPackage}>
             <input
               className={inputClass}
               required
@@ -1758,7 +1758,7 @@ export function AdminPage() {
                 className={inputClass}
                 required
                 inputMode="numeric"
-                placeholder="Créditos"
+                placeholder="Fichas"
                 value={packageForm.baseCredits}
                 onChange={(event) => setPackageForm({ ...packageForm, baseCredits: event.target.value })}
               />
@@ -1796,7 +1796,7 @@ export function AdminPage() {
             status={filters.packages.status}
             total={packages.length}
             filtered={filteredPackages.length}
-            searchPlaceholder="Buscar por nome, valor, créditos ou bônus"
+            searchPlaceholder="Buscar por nome, valor, fichas ou bônus"
             statusOptions={[
               { value: "ALL", label: "Todos" },
               { value: "ACTIVE", label: "Ativos" },
@@ -1818,7 +1818,7 @@ export function AdminPage() {
                     <p className="font-bold text-brand-black">{creditPackage.name}</p>
                     <p className="text-sm text-gray-500">
                       R$ {Number(creditPackage.amountBrl).toFixed(2)} ·{" "}
-                      {creditPackage.baseCredits + creditPackage.bonusCredits} créditos
+                      {creditPackage.baseCredits + creditPackage.bonusCredits} fichas
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2">
@@ -1883,7 +1883,7 @@ export function AdminPage() {
                 className={inputClass}
                 required
                 inputMode="numeric"
-                placeholder="Créditos requeridos"
+                placeholder="Fichas requeridas"
                 value={levelForm.requiredCredits}
                 onChange={(event) => setLevelForm({ ...levelForm, requiredCredits: event.target.value })}
               />
@@ -1913,7 +1913,7 @@ export function AdminPage() {
             status={filters.levels.status}
             total={levels.length}
             filtered={filteredLevels.length}
-            searchPlaceholder="Buscar por nível, créditos requeridos ou bônus"
+            searchPlaceholder="Buscar por nível, fichas requeridas ou bônus"
             statusOptions={[
               { value: "ALL", label: "Todos" },
               { value: "ACTIVE", label: "Ativos" },
@@ -1933,7 +1933,7 @@ export function AdminPage() {
                   <div>
                     <p className="font-bold text-brand-black">{level.levelName}</p>
                     <p className="text-sm text-gray-500">
-                      {level.requiredCredits} créditos · +{level.bonusCreditsReward} bônus
+                      {level.requiredCredits} fichas · +{level.bonusCreditsReward} bônus
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2">
@@ -2131,7 +2131,7 @@ export function AdminPage() {
                 className={inputClass}
                 required
                 inputMode="numeric"
-                placeholder="Pulsos por crédito"
+                placeholder="Pulsos por ficha"
                 value={machineForm.pulsesPerCredit}
                 onChange={(event) => setMachineForm({ ...machineForm, pulsesPerCredit: event.target.value })}
               />
@@ -2175,7 +2175,7 @@ export function AdminPage() {
                   {machine.store.name} · {machine.telemetryId}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {machine.costPerGame} crédito/jogada · {machine.pulsesPerCredit} pulsos/crédito
+                  {machine.costPerGame} ficha/jogada · {machine.pulsesPerCredit} pulsos/ficha
                 </p>
                 <div className="mt-2 rounded-lg bg-surface-soft p-2 text-xs text-gray-500">
                   <p className="break-all">QR máquina: {getQrUrl(`/qr/maquina/${machine.id}`)}</p>

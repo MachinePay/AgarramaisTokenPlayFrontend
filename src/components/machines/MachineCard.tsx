@@ -38,7 +38,7 @@ export function MachineCard({ machine, onSelect }: { machine: Machine; onSelect:
       <div className={`flex flex-col gap-1 px-3 py-3 ${isAvailable ? "" : "opacity-60"}`}>
         <span className="truncate text-sm font-semibold text-brand-black">{machine.name}</span>
         <span className="text-base font-extrabold text-brand-black">
-          {machine.costPerGame} <span className="text-xs font-semibold text-gray-500">Créditos</span>
+          {machine.costPerGame} <span className="text-xs font-semibold text-gray-500">Fichas</span>
         </span>
       </div>
     </button>
