@@ -66,6 +66,54 @@ export type AdminTransaction = Transaction & {
   package: { id: string; name: string } | null;
 };
 
+export type AdminReportRankingItem = {
+  id: string;
+  name: string;
+  subtitle?: string;
+  purchases?: number;
+  amountBrl?: number;
+  credits?: number;
+  games?: number;
+};
+
+export type AdminOperationsReport = {
+  period: {
+    dateFrom: string;
+    dateTo: string;
+  };
+  summary: {
+    revenueBrl: number;
+    approvedPurchases: number;
+    pendingPurchases: number;
+    failedPurchases: number;
+    creditsSold: number;
+    totalGames: number;
+    failedGames: number;
+    creditsUsed: number;
+    activeBuyers: number;
+    activePlayers: number;
+    averageTicketBrl: number;
+    averageCreditsPerGame: number;
+  };
+  rankings: {
+    packages: AdminReportRankingItem[];
+    buyers: AdminReportRankingItem[];
+    players: AdminReportRankingItem[];
+    stores: AdminReportRankingItem[];
+    machines: AdminReportRankingItem[];
+  };
+  series: {
+    daily: Array<{
+      date: string;
+      revenueBrl: number;
+      purchases: number;
+      creditsSold: number;
+      games: number;
+      creditsUsed: number;
+    }>;
+  };
+};
+
 export type AdminUser = {
   id: string;
   name: string;

@@ -4,6 +4,8 @@ import type {
   AdminDashboardSummary,
   AdminGameplayLog,
   AdminMachine,
+  AdminOperationsReport,
+  AdminReportRankingItem,
   AdminSettings,
   AdminTransaction,
   AdminUser,
@@ -29,7 +31,8 @@ type AdminTab =
   | "packages"
   | "levels"
   | "stores"
-  | "machines";
+  | "machines"
+  | "reports";
 
 type PackageForm = {
   name: string;
@@ -91,7 +94,7 @@ const inputClass =
 const filterInputClass =
   "h-11 rounded-xl border border-amber-100 bg-white px-3 text-sm font-medium text-brand-black outline-none shadow-sm transition-colors placeholder:text-gray-400 focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/20";
 
-type FilterableTab = Exclude<AdminTab, "summary">;
+type FilterableTab = Exclude<AdminTab, "summary" | "reports">;
 
 type AdminFilter = {
   search: string;
@@ -111,6 +114,15 @@ function getTodayInputValue(): string {
 }
 
 const todayInputValue = getTodayInputValue();
+
+function getDaysAgoInputValue(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 const defaultFilters: AdminFilters = {
   users: { search: "", status: "ALL" },
@@ -133,6 +145,7 @@ const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
   { id: "levels", label: "Niveis", icon: "🏆" },
   { id: "stores", label: "Lojas", icon: "🏬" },
   { id: "machines", label: "Maquinas", icon: "🧸" },
+  { id: "reports", label: "Relatorios", icon: "📈" },
 ];
 
 function toNumber(value: string): number {
@@ -273,6 +286,114 @@ function AdminFilterBar({
   );
 }
 
+function formatMoney(value: number): string {
+  return `R$ ${value.toFixed(2)}`;
+}
+
+function formatDateLabel(value: string): string {
+  const [, month, day] = value.split("-");
+  return `${day}/${month}`;
+}
+
+function ReportRankingCard({
+  title,
+  items,
+  metric,
+  metricLabel,
+  emptyMessage,
+}: {
+  title: string;
+  items: AdminReportRankingItem[];
+  metric: "amountBrl" | "credits" | "games" | "purchases";
+  metricLabel: string;
+  emptyMessage: string;
+}) {
+  const maxValue = Math.max(1, ...items.map((item) => Number(item[metric] ?? 0)));
+
+  return (
+    <AdminCard>
+      <h3 className="text-base font-black text-brand-black">{title}</h3>
+      {items.length === 0 ? (
+        <p className="mt-4 text-sm font-medium text-gray-500">{emptyMessage}</p>
+      ) : (
+        <div className="mt-4 grid gap-3">
+          {items.map((item, index) => {
+            const value = Number(item[metric] ?? 0);
+            return (
+              <div key={item.id} className="grid gap-1.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-brand-black">
+                      {index + 1}. {item.name}
+                    </p>
+                    {item.subtitle && <p className="truncate text-xs font-semibold text-gray-500">{item.subtitle}</p>}
+                  </div>
+                  <p className="shrink-0 text-sm font-black text-orange-600">
+                    {metric === "amountBrl" ? formatMoney(value) : value} {metricLabel}
+                  </p>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-amber-50">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-brand-yellow to-orange-400"
+                    style={{ width: `${Math.max(8, (value / maxValue) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </AdminCard>
+  );
+}
+
+function ReportDailyChart({ daily }: { daily: AdminOperationsReport["series"]["daily"] }) {
+  const maxRevenue = Math.max(1, ...daily.map((day) => day.revenueBrl));
+  const maxGames = Math.max(1, ...daily.map((day) => day.games));
+
+  return (
+    <AdminCard className="xl:col-span-2">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-base font-black text-brand-black">Movimento por dia</h3>
+        <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-black text-orange-700">
+          Faturamento e jogadas
+        </span>
+      </div>
+      {daily.length === 0 ? (
+        <p className="mt-4 text-sm font-medium text-gray-500">Sem movimento no periodo.</p>
+      ) : (
+        <div className="mt-4 grid gap-3">
+          {daily.map((day) => (
+            <div key={day.date} className="grid grid-cols-[54px_1fr] items-center gap-3">
+              <p className="text-xs font-black text-gray-500">{formatDateLabel(day.date)}</p>
+              <div className="grid gap-1.5">
+                <div className="flex items-center gap-2">
+                  <div className="h-3 flex-1 overflow-hidden rounded-full bg-amber-50">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-brand-yellow to-orange-400"
+                      style={{ width: `${Math.max(4, (day.revenueBrl / maxRevenue) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="w-20 text-right text-xs font-black text-brand-black">{formatMoney(day.revenueBrl)}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-sky-50">
+                    <div
+                      className="h-full rounded-full bg-sky-400"
+                      style={{ width: `${Math.max(4, (day.games / maxGames) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="w-20 text-right text-xs font-bold text-gray-500">{day.games} jogadas</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </AdminCard>
+  );
+}
+
 export function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>("summary");
   const [summary, setSummary] = useState<AdminDashboardSummary | null>(null);
@@ -286,6 +407,10 @@ export function AdminPage() {
   const [levels, setLevels] = useState<LoyaltyLevel[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [machines, setMachines] = useState<AdminMachine[]>([]);
+  const [operationsReport, setOperationsReport] = useState<AdminOperationsReport | null>(null);
+  const [reportsLoading, setReportsLoading] = useState(false);
+  const [reportDateFrom, setReportDateFrom] = useState(getDaysAgoInputValue(29));
+  const [reportDateTo, setReportDateTo] = useState(todayInputValue);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -546,6 +671,28 @@ export function AdminPage() {
   useEffect(() => {
     loadAdminData();
   }, [loadAdminData]);
+
+  const loadOperationsReport = useCallback(async () => {
+    setReportsLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      if (reportDateFrom) params.set("dateFrom", reportDateFrom);
+      if (reportDateTo) params.set("dateTo", reportDateTo);
+      const report = await apiRequest<AdminOperationsReport>(`/admin/reports/operations?${params.toString()}`);
+      setOperationsReport(report);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel carregar os relatorios");
+    } finally {
+      setReportsLoading(false);
+    }
+  }, [reportDateFrom, reportDateTo]);
+
+  useEffect(() => {
+    if (activeTab === "reports") {
+      loadOperationsReport();
+    }
+  }, [activeTab, loadOperationsReport]);
 
   async function submitPackage(event: FormEvent) {
     event.preventDefault();
@@ -2291,6 +2438,151 @@ export function AdminPage() {
               </AdminCard>
             ))}
           </div>
+        </section>
+      )}
+
+      {!loading && activeTab === "reports" && (
+        <section className="flex flex-col gap-4">
+          <AdminCard className="border-amber-100 bg-white/90">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-xs font-black uppercase text-orange-600">Operacao</p>
+                <h2 className="text-2xl font-black text-brand-black">Relatorios gerenciais</h2>
+                <p className="mt-1 text-sm font-medium text-gray-500">
+                  Faturamento, fichas, jogadas, rankings de clientes, pacotes, lojas e maquinas.
+                </p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-[150px_150px_auto]">
+                <input
+                  className={filterInputClass}
+                  type="date"
+                  value={reportDateFrom}
+                  onChange={(event) => setReportDateFrom(event.target.value)}
+                />
+                <input
+                  className={filterInputClass}
+                  type="date"
+                  value={reportDateTo}
+                  onChange={(event) => setReportDateTo(event.target.value)}
+                />
+                <AdminButton type="button" variant="primary" disabled={reportsLoading} onClick={loadOperationsReport}>
+                  {reportsLoading ? "Atualizando..." : "Atualizar"}
+                </AdminButton>
+              </div>
+            </div>
+          </AdminCard>
+
+          {reportsLoading && !operationsReport && (
+            <AdminCard>
+              <p className="text-sm font-bold text-gray-500">Carregando relatorios...</p>
+            </AdminCard>
+          )}
+
+          {operationsReport && (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <AdminStatCard
+                  icon="ðŸ’°"
+                  label="Faturamento"
+                  value={formatMoney(operationsReport.summary.revenueBrl)}
+                  sublabel={`${operationsReport.summary.approvedPurchases} compras aprovadas`}
+                  tone="amber"
+                />
+                <AdminStatCard
+                  icon="ðŸŽŸï¸"
+                  label="Fichas vendidas"
+                  value={String(operationsReport.summary.creditsSold)}
+                  sublabel={`${operationsReport.summary.activeBuyers} compradores`}
+                  tone="green"
+                />
+                <AdminStatCard
+                  icon="ðŸ•¹ï¸"
+                  label="Jogadas"
+                  value={String(operationsReport.summary.totalGames)}
+                  sublabel={`${operationsReport.summary.creditsUsed} fichas usadas`}
+                  tone="blue"
+                />
+                <AdminStatCard
+                  icon="ðŸ§¾"
+                  label="Ticket medio"
+                  value={formatMoney(operationsReport.summary.averageTicketBrl)}
+                  sublabel={`${operationsReport.summary.pendingPurchases} pendentes · ${operationsReport.summary.failedPurchases} falhas`}
+                  tone="purple"
+                />
+              </div>
+
+              <div className="grid gap-3 xl:grid-cols-2">
+                <ReportDailyChart daily={operationsReport.series.daily} />
+                <AdminCard>
+                  <h3 className="text-base font-black text-brand-black">Saude da operacao</h3>
+                  <div className="mt-4 grid gap-3">
+                    <div className="rounded-2xl bg-amber-50 p-4">
+                      <p className="text-xs font-black uppercase text-orange-700">Clientes ativos</p>
+                      <p className="mt-1 text-3xl font-black text-brand-black">{operationsReport.summary.activePlayers}</p>
+                      <p className="text-sm font-semibold text-gray-500">jogaram no periodo</p>
+                    </div>
+                    <div className="rounded-2xl bg-sky-50 p-4">
+                      <p className="text-xs font-black uppercase text-sky-700">Media por jogada</p>
+                      <p className="mt-1 text-3xl font-black text-brand-black">
+                        {operationsReport.summary.averageCreditsPerGame.toFixed(1)}
+                      </p>
+                      <p className="text-sm font-semibold text-gray-500">fichas consumidas por jogada</p>
+                    </div>
+                    <div className="rounded-2xl bg-red-50 p-4">
+                      <p className="text-xs font-black uppercase text-red-600">Falhas de jogo</p>
+                      <p className="mt-1 text-3xl font-black text-brand-black">{operationsReport.summary.failedGames}</p>
+                      <p className="text-sm font-semibold text-gray-500">logs com status de falha</p>
+                    </div>
+                  </div>
+                </AdminCard>
+              </div>
+
+              <div className="grid gap-3 xl:grid-cols-2">
+                <ReportRankingCard
+                  title="Pacotes que mais saem"
+                  items={operationsReport.rankings.packages}
+                  metric="purchases"
+                  metricLabel="compras"
+                  emptyMessage="Nenhum pacote vendido no periodo."
+                />
+                <ReportRankingCard
+                  title="Clientes que mais compram"
+                  items={operationsReport.rankings.buyers}
+                  metric="amountBrl"
+                  metricLabel=""
+                  emptyMessage="Nenhuma compra aprovada no periodo."
+                />
+                <ReportRankingCard
+                  title="Clientes que mais jogam"
+                  items={operationsReport.rankings.players}
+                  metric="games"
+                  metricLabel="jogadas"
+                  emptyMessage="Nenhuma jogada no periodo."
+                />
+                <ReportRankingCard
+                  title="Lojas com mais jogadas"
+                  items={operationsReport.rankings.stores}
+                  metric="games"
+                  metricLabel="jogadas"
+                  emptyMessage="Nenhuma loja com jogadas no periodo."
+                />
+                <ReportRankingCard
+                  title="Maquinas com mais jogadas"
+                  items={operationsReport.rankings.machines}
+                  metric="games"
+                  metricLabel="jogadas"
+                  emptyMessage="Nenhuma maquina com jogadas no periodo."
+                />
+                <ReportRankingCard
+                  title="Clientes por fichas compradas"
+                  items={operationsReport.rankings.buyers}
+                  metric="credits"
+                  metricLabel="fichas"
+                  emptyMessage="Nenhuma ficha vendida no periodo."
+                />
+              </div>
+            </>
+          )}
         </section>
       )}
     </div>
