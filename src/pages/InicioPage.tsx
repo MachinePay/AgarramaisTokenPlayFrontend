@@ -21,7 +21,7 @@ export function InicioPage() {
   useEffect(() => {
     Promise.all([
       apiRequest<Campaign[]>("/campaigns/active").catch(() => []),
-      apiRequest<CreditPackage[]>("/packages").catch(() => []),
+      apiRequest<CreditPackage[]>("/packages/home").catch(() => []),
       apiRequest<Store[]>("/stores").catch(() => []),
     ])
       .then(([campaignsData, packagesData, storesData]) => {

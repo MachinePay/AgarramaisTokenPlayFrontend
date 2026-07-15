@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
-import { ApiError } from "@/lib/api";
+import { apiRequest, ApiError } from "@/lib/api";
+import type { CreditPackage } from "@/lib/types";
 
 export function EntrarPage() {
   const navigate = useNavigate();
@@ -16,9 +17,16 @@ export function EntrarPage() {
   const [cpf, setCpf] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [homePackages, setHomePackages] = useState<CreditPackage[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const isRegisterMode = mode === "register";
+
+  useEffect(() => {
+    apiRequest<CreditPackage[]>("/packages/home")
+      .then(setHomePackages)
+      .catch(() => setHomePackages([]));
+  }, []);
 
   if (token) {
     return <Navigate to="/inicio" replace />;
@@ -123,6 +131,36 @@ export function EntrarPage() {
               : "Acesse sua carteira de fichas e veja as promocoes do dia."}
           </p>
         </div>
+
+        {homePackages.length > 0 && (
+          <div className="mb-4 flex gap-3 overflow-x-auto pb-1 no-scrollbar">
+            {homePackages.slice(0, 3).map((creditPackage) => (
+              <div
+                key={creditPackage.id}
+                className="min-w-[210px] rounded-3xl bg-slate-950 p-4 text-white shadow-[0_14px_30px_rgba(15,23,42,0.18)]"
+              >
+                <p className="text-[10px] font-black uppercase text-brand-yellow">
+                  {creditPackage.isPopular ? "Oferta destaque" : "Pacote inicial"}
+                </p>
+                <h2 className="mt-1 truncate text-lg font-black">{creditPackage.name}</h2>
+                <div className="mt-3 flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-3xl font-black text-brand-yellow">
+                      {creditPackage.baseCredits + creditPackage.bonusCredits}
+                    </p>
+                    <p className="text-[11px] font-bold uppercase text-white/50">fichas</p>
+                  </div>
+                  <p className="text-lg font-black">R$ {Number(creditPackage.amountBrl).toFixed(2)}</p>
+                </div>
+                {creditPackage.bonusCredits > 0 && (
+                  <p className="mt-2 rounded-full bg-brand-yellow px-3 py-1 text-center text-[11px] font-black uppercase text-brand-black">
+                    +{creditPackage.bonusCredits} bonus
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           {isRegisterMode && (
