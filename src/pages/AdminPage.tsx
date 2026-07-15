@@ -869,19 +869,6 @@ export function AdminPage() {
     }
   }
 
-  async function processTransaction(transaction: AdminTransaction, action: "confirm" | "fail") {
-    setSaving(true);
-    setError(null);
-    try {
-      await apiRequest(`/admin/transactions/${transaction.id}/${action}`, { method: "POST" });
-      await loadAdminData();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Nao foi possivel processar a transacao");
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function updateUser(user: AdminUser, input: Partial<Pick<AdminUser, "status" | "role">>) {
     setSaving(true);
     setError(null);
@@ -990,6 +977,15 @@ export function AdminPage() {
 
   function getQrUrl(path: string): string {
     return `${window.location.origin}${path}`;
+  }
+
+  function formatTransactionStatus(status: AdminTransaction["status"]): string {
+    const labels = {
+      PENDING: "Aguardando",
+      APPROVED: "Confirmada",
+      FAILED: "Nao confirmada",
+    };
+    return labels[status];
   }
 
   return (
@@ -1326,26 +1322,13 @@ export function AdminPage() {
                         : "red"
                   }
                 >
-                  {transaction.status}
+                  {formatTransactionStatus(transaction.status)}
                 </AdminTag>
               </div>
 
               {transaction.status === "PENDING" && (
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <AdminButton
-                    variant="primary"
-                    disabled={saving}
-                    onClick={() => processTransaction(transaction, "confirm")}
-                  >
-                    Confirmar
-                  </AdminButton>
-                  <AdminButton
-                    variant="danger"
-                    disabled={saving}
-                    onClick={() => processTransaction(transaction, "fail")}
-                  >
-                    Marcar falha
-                  </AdminButton>
+                <div className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
+                  Aguardando confirmacao automatica do gateway.
                 </div>
               )}
             </AdminCard>
