@@ -58,14 +58,14 @@ export function LandingPage() {
             Compre fichas e jogue agora.
           </h1>
           <p className="mt-4 max-w-sm text-base font-semibold text-white/78">
-            Aproveite pacotes criados para dar mais chances de pegar prêmios nas máquinas online.
+            Compre pelo site, escolha a loja e use suas fichas nas máquinas reais.
           </p>
         </div>
 
         <div className="relative mt-7 grid grid-cols-3 gap-2">
           <LandingStat value="Pix" label="Pagamento rápido" />
           <LandingStat value="+Bônus" label="Pacotes especiais" />
-          <LandingStat value="Online" label="Máquinas ao vivo" />
+          <LandingStat value="Na loja" label="Máquinas reais" />
         </div>
 
         <div className="relative mt-7">
