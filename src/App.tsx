@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { RequireAuth } from "@/components/layout/RequireAuth";
 import { EntrarPage } from "@/pages/EntrarPage";
+import { InicioPage } from "@/pages/InicioPage";
 import { LojasPage } from "@/pages/LojasPage";
 import { VitrinePage } from "@/pages/VitrinePage";
 import { CreditosPage } from "@/pages/CreditosPage";
@@ -13,8 +14,17 @@ import { QrMaquinaPage } from "@/pages/QrMaquinaPage";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/lojas" replace />} />
+      <Route path="/" element={<Navigate to="/inicio" replace />} />
       <Route path="/entrar" element={<EntrarPage />} />
+
+      <Route
+        path="/inicio"
+        element={
+          <RequireAuth>
+            <InicioPage />
+          </RequireAuth>
+        }
+      />
 
       <Route
         path="/lojas"

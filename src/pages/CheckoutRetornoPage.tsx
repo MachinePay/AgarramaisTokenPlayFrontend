@@ -14,6 +14,11 @@ function getTransactionIdFromSearch(search: string): string | null {
   return params.get("external_reference") || params.get("transaction_id") || getPendingTransactionId();
 }
 
+function getPaymentIdFromSearch(search: string): string | null {
+  const params = new URLSearchParams(search);
+  return params.get("payment_id") || params.get("collection_id");
+}
+
 export function CheckoutRetornoPage({ expectedStatus }: CheckoutRetornoPageProps) {
   const location = useLocation();
   const fetchNavbarSummary = useAuthStore((state) => state.fetchNavbarSummary);
@@ -22,6 +27,7 @@ export function CheckoutRetornoPage({ expectedStatus }: CheckoutRetornoPageProps
   const [error, setError] = useState<string | null>(null);
 
   const transactionId = useMemo(() => getTransactionIdFromSearch(location.search), [location.search]);
+  const paymentId = useMemo(() => getPaymentIdFromSearch(location.search), [location.search]);
 
   useEffect(() => {
     if (!transactionId) {
@@ -36,7 +42,8 @@ export function CheckoutRetornoPage({ expectedStatus }: CheckoutRetornoPageProps
     async function loadTransaction() {
       attempts += 1;
       try {
-        const data = await apiRequest<Transaction>(`/transactions/${transactionId}`);
+        const paymentQuery = paymentId ? `?payment_id=${encodeURIComponent(paymentId)}` : "";
+        const data = await apiRequest<Transaction>(`/transactions/${transactionId}${paymentQuery}`);
         if (!active) return;
 
         setTransaction(data);
@@ -63,7 +70,7 @@ export function CheckoutRetornoPage({ expectedStatus }: CheckoutRetornoPageProps
     return () => {
       active = false;
     };
-  }, [fetchNavbarSummary, transactionId]);
+  }, [fetchNavbarSummary, paymentId, transactionId]);
 
   const approved = transaction?.status === "APPROVED";
   const failed = transaction?.status === "FAILED" || expectedStatus === "failure";

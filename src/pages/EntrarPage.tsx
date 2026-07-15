@@ -21,7 +21,7 @@ export function EntrarPage() {
   const isRegisterMode = mode === "register";
 
   if (token) {
-    return <Navigate to="/lojas" replace />;
+    return <Navigate to="/inicio" replace />;
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -33,7 +33,7 @@ export function EntrarPage() {
       } else {
         await login(email, password);
       }
-      navigate("/lojas");
+      navigate("/inicio");
     } catch (err) {
       setError(
         err instanceof ApiError

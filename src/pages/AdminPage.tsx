@@ -92,11 +92,29 @@ const filterInputClass =
   "h-11 rounded-xl border border-amber-100 bg-white px-3 text-sm font-medium text-brand-black outline-none shadow-sm transition-colors placeholder:text-gray-400 focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/20";
 
 type FilterableTab = Exclude<AdminTab, "summary">;
-type AdminFilters = Record<FilterableTab, { search: string; status: string }>;
+
+type AdminFilter = {
+  search: string;
+  status: string;
+  dateFrom?: string;
+  dateTo?: string;
+};
+
+type AdminFilters = Record<FilterableTab, AdminFilter>;
+
+function getTodayInputValue(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+const todayInputValue = getTodayInputValue();
 
 const defaultFilters: AdminFilters = {
   users: { search: "", status: "ALL" },
-  transactions: { search: "", status: "ALL" },
+  transactions: { search: "", status: "ALL", dateFrom: todayInputValue, dateTo: todayInputValue },
   gameplay: { search: "", status: "ALL" },
   campaigns: { search: "", status: "ALL" },
   packages: { search: "", status: "ALL" },
@@ -170,8 +188,12 @@ function AdminFilterBar({
   searchPlaceholder,
   statusLabel = "Status",
   statusOptions,
+  dateFrom,
+  dateTo,
   onSearchChange,
   onStatusChange,
+  onDateFromChange,
+  onDateToChange,
   onClear,
 }: {
   search: string;
@@ -181,15 +203,24 @@ function AdminFilterBar({
   searchPlaceholder: string;
   statusLabel?: string;
   statusOptions: Array<{ value: string; label: string }>;
+  dateFrom?: string;
+  dateTo?: string;
   onSearchChange: (value: string) => void;
   onStatusChange: (value: string) => void;
+  onDateFromChange?: (value: string) => void;
+  onDateToChange?: (value: string) => void;
   onClear: () => void;
 }) {
-  const hasFilters = Boolean(search.trim()) || status !== "ALL";
+  const hasDateFilters = Boolean(onDateFromChange || onDateToChange);
+  const hasFilters = Boolean(search.trim()) || status !== "ALL" || Boolean(dateFrom) || Boolean(dateTo);
 
   return (
     <div className="rounded-2xl border border-white/80 bg-white/85 p-3 shadow-sm backdrop-blur">
-      <div className="grid gap-2 md:grid-cols-[1fr_220px_auto] md:items-center">
+      <div
+        className={`grid gap-2 md:items-center ${
+          hasDateFilters ? "md:grid-cols-[1fr_170px_170px_220px_auto]" : "md:grid-cols-[1fr_220px_auto]"
+        }`}
+      >
         <div className="relative">
           <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm">
             🔎
@@ -201,6 +232,24 @@ function AdminFilterBar({
             onChange={(event) => onSearchChange(event.target.value)}
           />
         </div>
+        {hasDateFilters && (
+          <>
+            <input
+              className={`${filterInputClass} w-full`}
+              aria-label="Data inicial"
+              type="date"
+              value={dateFrom ?? ""}
+              onChange={(event) => onDateFromChange?.(event.target.value)}
+            />
+            <input
+              className={`${filterInputClass} w-full`}
+              aria-label="Data final"
+              type="date"
+              value={dateTo ?? ""}
+              onChange={(event) => onDateToChange?.(event.target.value)}
+            />
+          </>
+        )}
         <select
           className={`${filterInputClass} w-full`}
           aria-label={statusLabel}
@@ -293,7 +342,7 @@ export function AdminPage() {
 
   const activeStores = useMemo(() => stores.filter((store) => store.status === "ACTIVE"), [stores]);
 
-  const updateFilter = (tab: FilterableTab, field: "search" | "status", value: string) => {
+  const updateFilter = (tab: FilterableTab, field: keyof AdminFilter, value: string) => {
     setFilters((current) => ({
       ...current,
       [tab]: { ...current[tab], [field]: value },
@@ -316,8 +365,13 @@ export function AdminPage() {
     const filter = filters.transactions;
     return transactions.filter((transaction) => {
       const statusMatches = filter.status === "ALL" || transaction.status === filter.status;
+      const createdAt = new Date(transaction.createdAt);
+      const startsAt = filter.dateFrom ? new Date(`${filter.dateFrom}T00:00:00`) : null;
+      const endsAt = filter.dateTo ? new Date(`${filter.dateTo}T23:59:59.999`) : null;
+      const dateMatches = (!startsAt || createdAt >= startsAt) && (!endsAt || createdAt <= endsAt);
       return (
         statusMatches &&
+        dateMatches &&
         matchesSearch(filter.search, [
           transaction.user.name,
           transaction.user.email,
@@ -869,19 +923,6 @@ export function AdminPage() {
     }
   }
 
-  async function processTransaction(transaction: AdminTransaction, action: "confirm" | "fail") {
-    setSaving(true);
-    setError(null);
-    try {
-      await apiRequest(`/admin/transactions/${transaction.id}/${action}`, { method: "POST" });
-      await loadAdminData();
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Nao foi possivel processar a transacao");
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function updateUser(user: AdminUser, input: Partial<Pick<AdminUser, "status" | "role">>) {
     setSaving(true);
     setError(null);
@@ -1287,6 +1328,8 @@ export function AdminPage() {
             <AdminFilterBar
               search={filters.transactions.search}
               status={filters.transactions.status}
+              dateFrom={filters.transactions.dateFrom}
+              dateTo={filters.transactions.dateTo}
               total={transactions.length}
               filtered={filteredTransactions.length}
               searchPlaceholder="Buscar por cliente, pacote, valor ou ID do pagamento"
@@ -1298,6 +1341,8 @@ export function AdminPage() {
               ]}
               onSearchChange={(value) => updateFilter("transactions", "search", value)}
               onStatusChange={(value) => updateFilter("transactions", "status", value)}
+              onDateFromChange={(value) => updateFilter("transactions", "dateFrom", value)}
+              onDateToChange={(value) => updateFilter("transactions", "dateTo", value)}
               onClear={() => clearFilter("transactions")}
             />
           </div>
@@ -1331,21 +1376,8 @@ export function AdminPage() {
               </div>
 
               {transaction.status === "PENDING" && (
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <AdminButton
-                    variant="primary"
-                    disabled={saving}
-                    onClick={() => processTransaction(transaction, "confirm")}
-                  >
-                    Confirmar
-                  </AdminButton>
-                  <AdminButton
-                    variant="danger"
-                    disabled={saving}
-                    onClick={() => processTransaction(transaction, "fail")}
-                  >
-                    Marcar falha
-                  </AdminButton>
+                <div className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
+                  Aguardando Mercado Pago. Se nao confirmar, a compra nao foi paga.
                 </div>
               )}
             </AdminCard>

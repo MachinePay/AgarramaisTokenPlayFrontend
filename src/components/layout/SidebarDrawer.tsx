@@ -8,8 +8,9 @@ type SidebarDrawerProps = {
 };
 
 const LINKS = [
+  { to: "/inicio", label: "Inicio", description: "Promocoes e ofertas", icon: "🎯" },
   { to: "/lojas", label: "Lojas", description: "Escolher unidade", icon: "🏬" },
-  { to: "/creditos", label: "Loja de Créditos", description: "Comprar fichas", icon: "💳" },
+  { to: "/creditos", label: "Loja de Creditos", description: "Comprar fichas", icon: "💳" },
 ];
 
 function isAdminToken(): boolean {
@@ -29,7 +30,7 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
   const logout = useAuthStore((state) => state.logout);
   const navbar = useAuthStore((state) => state.navbar);
   const links = isAdminToken()
-    ? [...LINKS, { to: "/admin", label: "Admin", description: "Gestão completa", icon: "⚙️" }]
+    ? [...LINKS, { to: "/admin", label: "Admin", description: "Gestao completa", icon: "⚙️" }]
     : LINKS;
 
   const name = navbar?.name ?? "Agarra Mais";
@@ -82,10 +83,10 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
             <div className="mt-1 flex items-end justify-between gap-3">
               <div>
                 <p className="text-2xl font-black text-brand-yellow">{creditBalance}</p>
-                <p className="text-xs font-bold uppercase text-white/50">Créditos</p>
+                <p className="text-xs font-bold uppercase text-white/50">Creditos</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-white">Nível {levelName}</p>
+                <p className="text-sm font-bold text-white">Nivel {levelName}</p>
                 <p className="text-xs font-semibold text-white/50">{progressPercentage}% completo</p>
               </div>
             </div>
@@ -99,7 +100,7 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
         </div>
 
         <div className="px-4 pb-2 pt-4">
-          <p className="px-2 text-xs font-black uppercase tracking-[0.18em] text-gray-400">Navegação</p>
+          <p className="px-2 text-xs font-black uppercase tracking-[0.18em] text-gray-400">Navegacao</p>
         </div>
 
         <ul className="flex flex-1 flex-col gap-2 px-3">
