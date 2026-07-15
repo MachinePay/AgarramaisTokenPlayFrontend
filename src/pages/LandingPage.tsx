@@ -106,32 +106,46 @@ export function LandingPage() {
           )}
 
           <div className="mt-4 grid gap-3">
-            {packages.map((creditPackage) => (
-              <div
+            {packages.map((creditPackage) => {
+              const totalCredits = creditPackage.baseCredits + creditPackage.bonusCredits;
+
+              return (
+                <div
                 key={creditPackage.id}
                 className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#050712] to-slate-800 p-4 text-white shadow-[0_16px_32px_rgba(0,0,0,0.24)]"
               >
                 <span aria-hidden className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-brand-yellow/20" />
                 <div className="relative flex items-end justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <p className="text-xs font-black uppercase text-brand-yellow">
                       {creditPackage.isPopular ? "Mais procurado" : "Pacote especial"}
                     </p>
-                    <h3 className="mt-1 text-xl font-black">{creditPackage.name}</h3>
-                    <p className="mt-1 text-sm font-semibold text-white/60">
+                    <h3 className="mt-1 truncate text-xl font-black">{creditPackage.name}</h3>
+                    <div className="mt-3">
+                      <p className="text-4xl font-black leading-none text-brand-yellow">
+                        {totalCredits}
+                        <span className="ml-1 text-lg text-white">fichas</span>
+                      </p>
+                      <p className="mt-1 text-sm font-bold text-white/68">
+                        {creditPackage.baseCredits} fichas
+                        {creditPackage.bonusCredits > 0 ? ` + ${creditPackage.bonusCredits} bonus` : ""}
+                      </p>
+                    </div>
+                    <p className="hidden">
                       {creditPackage.baseCredits + creditPackage.bonusCredits} fichas
                       {creditPackage.bonusCredits > 0 ? `, +${creditPackage.bonusCredits} bônus` : ""}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="shrink-0 text-right">
                     <p className="text-xs font-bold uppercase text-white/50">Por</p>
                     <p className="text-2xl font-black text-brand-yellow">
                       R$ {Number(creditPackage.amountBrl).toFixed(2)}
                     </p>
                   </div>
                 </div>
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         </section>
       </section>
