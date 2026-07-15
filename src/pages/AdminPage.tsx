@@ -644,7 +644,8 @@ export function AdminPage() {
     event.preventDefault();
     setSaving(true);
     setError(null);
-    const data = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const data = new FormData(form);
     const credits = Number.parseInt(String(data.get("credits") || "0"), 10);
 
     if (!Number.isInteger(credits) || credits <= 0) {
@@ -658,7 +659,7 @@ export function AdminPage() {
         method: "POST",
         body: { credits },
       });
-      event.currentTarget.reset();
+      form.reset();
       await loadAdminData();
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {
@@ -984,7 +985,8 @@ export function AdminPage() {
     event.preventDefault();
     setSaving(true);
     setError(null);
-    const data = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const data = new FormData(form);
     try {
       await apiRequest(`/admin/campaigns/${campaign.id}/package-overrides`, {
         method: "POST",
@@ -997,7 +999,7 @@ export function AdminPage() {
           active: data.get("active") === "on",
         },
       });
-      event.currentTarget.reset();
+      form.reset();
       await loadAdminData();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar override de pacote");
@@ -1010,7 +1012,8 @@ export function AdminPage() {
     event.preventDefault();
     setSaving(true);
     setError(null);
-    const data = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const data = new FormData(form);
     try {
       const status = String(data.get("status") || "");
       await apiRequest(`/admin/campaigns/${campaign.id}/machine-overrides`, {
@@ -1022,7 +1025,7 @@ export function AdminPage() {
           status: status || undefined,
         },
       });
-      event.currentTarget.reset();
+      form.reset();
       await loadAdminData();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar override de maquina");
