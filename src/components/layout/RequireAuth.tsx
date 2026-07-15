@@ -16,7 +16,7 @@ export function RequireAuth({ children, wide = false }: { children: ReactNode; w
   }, [token, navbar, fetchNavbarSummary]);
 
   if (!token) {
-    return <Navigate to="/entrar" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <AppShell wide={wide}>{children}</AppShell>;
