@@ -1,6 +1,7 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { RequireAuth } from "@/components/layout/RequireAuth";
 import { EntrarPage } from "@/pages/EntrarPage";
+import { LandingPage } from "@/pages/LandingPage";
 import { InicioPage } from "@/pages/InicioPage";
 import { LojasPage } from "@/pages/LojasPage";
 import { VitrinePage } from "@/pages/VitrinePage";
@@ -14,7 +15,7 @@ import { QrMaquinaPage } from "@/pages/QrMaquinaPage";
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/inicio" replace />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/entrar" element={<EntrarPage />} />
 
       <Route

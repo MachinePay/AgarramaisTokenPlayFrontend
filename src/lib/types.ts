@@ -38,6 +38,7 @@ export type CreditPackage = {
   baseCredits: number;
   bonusCredits: number;
   isPopular: boolean;
+  showOnHome: boolean;
   active: boolean;
 };
 

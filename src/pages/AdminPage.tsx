@@ -38,6 +38,7 @@ type PackageForm = {
   baseCredits: string;
   bonusCredits: string;
   isPopular: boolean;
+  showOnHome: boolean;
 };
 
 type UserForm = {
@@ -308,9 +309,10 @@ export function AdminPage() {
     name: "",
     amountBrl: "",
     baseCredits: "",
-    bonusCredits: "0",
-    isPopular: false,
-  });
+  bonusCredits: "0",
+  isPopular: false,
+  showOnHome: false,
+});
   const [levelForm, setLevelForm] = useState<LevelForm>({
     levelName: "",
     requiredCredits: "",
@@ -561,10 +563,18 @@ export function AdminPage() {
           baseCredits: toNumber(packageForm.baseCredits),
           bonusCredits: toNumber(packageForm.bonusCredits || "0"),
           isPopular: packageForm.isPopular,
+          showOnHome: packageForm.showOnHome,
           active: true,
         },
       });
-      setPackageForm({ name: "", amountBrl: "", baseCredits: "", bonusCredits: "0", isPopular: false });
+      setPackageForm({
+        name: "",
+        amountBrl: "",
+        baseCredits: "",
+        bonusCredits: "0",
+        isPopular: false,
+        showOnHome: false,
+      });
       await loadAdminData();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o pacote");
@@ -874,6 +884,7 @@ export function AdminPage() {
           baseCredits: toNumber(String(data.get("baseCredits") ?? creditPackage.baseCredits)),
           bonusCredits: toNumber(String(data.get("bonusCredits") ?? creditPackage.bonusCredits)),
           isPopular: data.get("isPopular") === "on",
+          showOnHome: data.get("showOnHome") === "on",
         },
       });
       await loadAdminData();
@@ -1764,6 +1775,14 @@ export function AdminPage() {
               />
               Mais popular
             </label>
+            <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
+              <input
+                type="checkbox"
+                checked={packageForm.showOnHome}
+                onChange={(event) => setPackageForm({ ...packageForm, showOnHome: event.target.checked })}
+              />
+              Mostrar na tela inicial
+            </label>
             <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
               Criar pacote
             </AdminButton>
@@ -1830,6 +1849,10 @@ export function AdminPage() {
                     <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
                       <input name="isPopular" type="checkbox" defaultChecked={creditPackage.isPopular} />
                       Popular
+                    </label>
+                    <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
+                      <input name="showOnHome" type="checkbox" defaultChecked={creditPackage.showOnHome} />
+                      Tela inicial
                     </label>
                     <AdminButton type="submit" variant="primary" disabled={saving}>
                       Salvar

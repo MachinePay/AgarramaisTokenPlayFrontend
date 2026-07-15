@@ -91,3 +91,50 @@ body {
     box-shadow: 0 20px 36px rgba(245, 158, 11, 0.38);
   }
 }
+
+.landing-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 24%, rgba(246, 200, 51, 0.22), transparent 22%),
+    radial-gradient(circle at 82% 18%, rgba(249, 115, 22, 0.24), transparent 24%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0 11%, transparent 11% 22%, rgba(255, 255, 255, 0.04) 22% 34%, transparent 34%);
+  opacity: 0.95;
+}
+
+.landing-spot {
+  position: absolute;
+  border-radius: 9999px;
+  animation: float-soft 5.5s ease-in-out infinite;
+}
+
+.landing-spot--yellow {
+  right: -4rem;
+  top: 6rem;
+  width: 12rem;
+  height: 12rem;
+  background: rgba(246, 200, 51, 0.26);
+}
+
+.landing-spot--orange {
+  left: -3rem;
+  top: 20rem;
+  width: 8rem;
+  height: 8rem;
+  background: rgba(249, 115, 22, 0.2);
+  animation-delay: -1.3s;
+}
+
+.landing-spot--blue {
+  right: 3rem;
+  bottom: 7rem;
+  width: 7rem;
+  height: 7rem;
+  background: rgba(14, 165, 233, 0.16);
+  animation-delay: -2.4s;
+}
+
+.landing-cta {
+  animation: cta-pulse 1.8s ease-in-out infinite;
+}
