@@ -23,6 +23,13 @@ body {
   position: relative;
 }
 
+.landing-shell {
+  background:
+    radial-gradient(circle at 80% 8%, rgba(246, 200, 51, 0.14), transparent 26%),
+    radial-gradient(circle at 8% 74%, rgba(249, 115, 22, 0.1), transparent 24%),
+    #060814;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -97,15 +104,17 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 18% 24%, rgba(246, 200, 51, 0.22), transparent 22%),
-    radial-gradient(circle at 82% 18%, rgba(249, 115, 22, 0.24), transparent 24%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0 11%, transparent 11% 22%, rgba(255, 255, 255, 0.04) 22% 34%, transparent 34%);
-  opacity: 0.95;
+    linear-gradient(180deg, rgba(6, 8, 20, 0.62), rgba(10, 14, 30, 0.96) 62%, rgba(6, 8, 20, 1)),
+    radial-gradient(circle at 72% 17%, rgba(246, 200, 51, 0.16), transparent 26%),
+    radial-gradient(circle at 13% 56%, rgba(249, 115, 22, 0.12), transparent 24%);
+  opacity: 1;
 }
 
 .landing-spot {
   position: absolute;
   border-radius: 9999px;
+  filter: blur(4px);
+  opacity: 0.62;
   animation: float-soft 5.5s ease-in-out infinite;
 }
 
@@ -114,7 +123,7 @@ body {
   top: 6rem;
   width: 12rem;
   height: 12rem;
-  background: rgba(246, 200, 51, 0.26);
+  background: rgba(246, 200, 51, 0.18);
 }
 
 .landing-spot--orange {
@@ -122,7 +131,7 @@ body {
   top: 20rem;
   width: 8rem;
   height: 8rem;
-  background: rgba(249, 115, 22, 0.2);
+  background: rgba(249, 115, 22, 0.14);
   animation-delay: -1.3s;
 }
 
@@ -131,7 +140,7 @@ body {
   bottom: 7rem;
   width: 7rem;
   height: 7rem;
-  background: rgba(14, 165, 233, 0.16);
+  background: rgba(14, 165, 233, 0.1);
   animation-delay: -2.4s;
 }
 

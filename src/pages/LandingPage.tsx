@@ -26,7 +26,7 @@ export function LandingPage() {
   const activeCampaign = campaigns[0];
 
   return (
-    <div className="app-viewport min-h-dvh overflow-hidden bg-slate-950 text-white">
+    <div className="app-viewport landing-shell min-h-dvh overflow-hidden bg-[#060814] text-white">
       <section className="landing-hero relative min-h-dvh px-5 pb-7 pt-7">
         <div className="landing-spot landing-spot--yellow" />
         <div className="landing-spot landing-spot--orange" />
@@ -38,7 +38,7 @@ export function LandingPage() {
               🧸
             </div>
             <div>
-              <p className="text-xl font-black leading-tight">Agarra Mais</p>
+              <p className="text-xl font-black leading-tight text-white drop-shadow">Agarra Mais</p>
               <p className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-yellow">Token Play</p>
             </div>
           </div>
@@ -57,7 +57,7 @@ export function LandingPage() {
           <h1 className="mt-5 text-5xl font-black leading-[0.9] tracking-tight">
             Compre fichas e jogue agora.
           </h1>
-          <p className="mt-4 max-w-sm text-base font-semibold text-white/68">
+          <p className="mt-4 max-w-sm text-base font-semibold text-white/78">
             Aproveite pacotes criados para dar mais chances de pegar prêmios nas máquinas online.
           </p>
         </div>
@@ -80,27 +80,27 @@ export function LandingPage() {
           </p>
         </div>
 
-        <section className="relative mt-8 rounded-[2rem] bg-white p-4 text-brand-black shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
+        <section className="relative mt-8 rounded-[2rem] border border-white/10 bg-slate-900/88 p-4 text-white shadow-[0_24px_60px_rgba(0,0,0,0.38)] backdrop-blur">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-black uppercase text-orange-600">Ofertas na tela inicial</p>
-              <h2 className="text-2xl font-black">Pacotes em destaque</h2>
+              <p className="text-xs font-black uppercase text-brand-yellow">Ofertas na tela inicial</p>
+              <h2 className="text-2xl font-black text-white">Pacotes em destaque</h2>
             </div>
             {activeCampaign && (
-              <span className="rounded-full bg-amber-100 px-3 py-1 text-[11px] font-black uppercase text-orange-700">
+              <span className="rounded-full bg-brand-yellow px-3 py-1 text-[11px] font-black uppercase text-brand-black">
                 {activeCampaign.name}
               </span>
             )}
           </div>
 
           {loading && (
-            <div className="mt-4 rounded-2xl bg-slate-100 px-4 py-6 text-center text-sm font-bold text-gray-500">
+            <div className="mt-4 rounded-2xl bg-white/10 px-4 py-6 text-center text-sm font-bold text-white/65">
               Carregando ofertas...
             </div>
           )}
 
           {!loading && packages.length === 0 && (
-            <div className="mt-4 rounded-2xl bg-amber-50 px-4 py-5 text-sm font-bold text-amber-800">
+            <div className="mt-4 rounded-2xl bg-brand-yellow/12 px-4 py-5 text-sm font-bold text-brand-yellow ring-1 ring-brand-yellow/20">
               Cadastre pacotes no admin e marque "Mostrar na tela inicial" para eles aparecerem aqui.
             </div>
           )}
@@ -109,7 +109,7 @@ export function LandingPage() {
             {packages.map((creditPackage) => (
               <div
                 key={creditPackage.id}
-                className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 to-slate-800 p-4 text-white"
+                className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#050712] to-slate-800 p-4 text-white shadow-[0_16px_32px_rgba(0,0,0,0.24)]"
               >
                 <span aria-hidden className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-brand-yellow/20" />
                 <div className="relative flex items-end justify-between gap-3">
@@ -141,9 +141,9 @@ export function LandingPage() {
 
 function LandingStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-2xl bg-white/10 px-2 py-3 text-center ring-1 ring-white/15">
+    <div className="rounded-2xl border border-white/10 bg-slate-900/75 px-2 py-3 text-center shadow-[0_14px_28px_rgba(0,0,0,0.22)]">
       <p className="text-sm font-black text-brand-yellow">{value}</p>
-      <p className="mt-1 text-[10px] font-black uppercase leading-tight text-white/58">{label}</p>
+      <p className="mt-1 text-[10px] font-black uppercase leading-tight text-white/70">{label}</p>
     </div>
   );
 }
