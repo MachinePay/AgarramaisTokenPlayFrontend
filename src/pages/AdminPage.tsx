@@ -8,7 +8,6 @@ import type {
   AdminTransaction,
   AdminUser,
   Campaign,
-  CompactPayMachine,
   CreditPackage,
   LoyaltyDistribution,
   LoyaltyLevel,
@@ -287,9 +286,7 @@ export function AdminPage() {
   const [levels, setLevels] = useState<LoyaltyLevel[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [machines, setMachines] = useState<AdminMachine[]>([]);
-  const [compactPayMachines, setCompactPayMachines] = useState<CompactPayMachine[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingCompactPay, setLoadingCompactPay] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<AdminFilters>(defaultFilters);
@@ -919,19 +916,6 @@ export function AdminPage() {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel atualizar a maquina");
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function loadCompactPayMachines() {
-    setLoadingCompactPay(true);
-    setError(null);
-    try {
-      const data = await apiRequest<CompactPayMachine[]>("/admin/compactpay/machines");
-      setCompactPayMachines(data);
-    } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Nao foi possivel carregar maquinas da CompactPay");
-    } finally {
-      setLoadingCompactPay(false);
     }
   }
 
@@ -2171,46 +2155,8 @@ export function AdminPage() {
 
       {!loading && activeTab === "machines" && (
         <section className="flex flex-col gap-4">
-          <AdminCard className="flex flex-col gap-3">
-            <AdminButton
-              variant="secondary"
-              onClick={loadCompactPayMachines}
-              disabled={loadingCompactPay}
-              className="w-full py-3"
-            >
-              {loadingCompactPay ? "Consultando CompactPay..." : "Carregar máquinas da CompactPay"}
-            </AdminButton>
 
-            {compactPayMachines.length > 0 && (
-              <div className="rounded-xl bg-surface-soft p-3">
-                <p className="text-sm font-bold text-brand-black">IDs disponíveis</p>
-                <div className="mt-2 flex flex-col gap-2">
-                  {compactPayMachines.map((machine) => (
-                    <button
-                      key={machine.telemetryId}
-                      type="button"
-                      onClick={() =>
-                        setMachineForm((current) => ({
-                          ...current,
-                          telemetryId: machine.telemetryId,
-                          name: current.name || machine.name || machine.telemetryId,
-                        }))
-                      }
-                      className="rounded-lg bg-white px-3 py-2 text-left text-xs text-brand-black shadow-sm transition-transform active:scale-[0.98]"
-                    >
-                      <span className="font-bold">{machine.telemetryId}</span>
-                      <span className="text-gray-500">
-                        {" "}
-                        · {machine.name || "Sem nome"} · {machine.online ? "online" : "offline"}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </AdminCard>
-
-          <AdminFormSection title="Criar máquina" onSubmit={submitMachine}>
+<AdminFormSection title="Criar máquina" onSubmit={submitMachine}>
             <select
               className={inputClass}
               required
