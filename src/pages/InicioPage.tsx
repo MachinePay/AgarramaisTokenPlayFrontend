@@ -208,7 +208,7 @@ export function InicioPage() {
               <h2 className="text-xl font-black text-brand-black">Comece por uma loja</h2>
               <p className="text-sm font-medium text-gray-500">Escolha a unidade e veja as máquinas disponíveis.</p>
             </div>
-            <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {stores.slice(0, 3).map((store) => (
                 <button
                   type="button"

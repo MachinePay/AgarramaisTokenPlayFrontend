@@ -249,7 +249,7 @@ export function FichasPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {packages.length === 0 && (
               <div className="rounded-3xl bg-white/85 p-8 text-center shadow-sm">
                 <p className="text-3xl">🎁</p>

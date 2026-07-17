@@ -44,7 +44,7 @@ export function VitrinePage() {
         <p className="py-8 text-center text-sm text-gray-500">Nenhuma máquina cadastrada nesta loja.</p>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {machines.map((machine) => (
           <MachineCard key={machine.id} machine={machine} onSelect={setSelectedMachine} />
         ))}

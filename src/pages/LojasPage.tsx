@@ -78,7 +78,7 @@ export function LojasPage() {
         <p className="py-8 text-center text-sm text-gray-500">Nenhuma loja encontrada.</p>
       )}
 
-      <div className="flex flex-col gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {filteredStores.map((store) => (
           <StoreCard
             key={store.id}

@@ -112,18 +112,22 @@ export function MeusPedidosPage() {
       {!loading && pending.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2 className="text-lg font-black text-brand-black">A receber</h2>
-          {pending.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {pending.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </div>
         </section>
       )}
 
       {!loading && history.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2 className="text-lg font-black text-brand-black">Historico</h2>
-          {history.map((order) => (
-            <OrderCard key={order.id} order={order} />
-          ))}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {history.map((order) => (
+              <OrderCard key={order.id} order={order} />
+            ))}
+          </div>
         </section>
       )}
     </div>

@@ -95,7 +95,7 @@ export function CheckoutRetornoPage({ expectedStatus }: CheckoutRetornoPageProps
     (kind === "order" ? order?.status === "FAILED" : transaction?.status === "FAILED") || expectedStatus === "failure";
 
   return (
-    <div className="flex min-h-[calc(100dvh-74px)] flex-col justify-center gap-5 px-6 py-8 text-center">
+    <div className="mx-auto flex min-h-[calc(100dvh-74px)] w-full max-w-sm flex-col justify-center gap-5 px-6 py-8 text-center">
       <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-surface-soft text-3xl">
         {approved ? "✓" : failed ? "!" : "..."}
       </div>

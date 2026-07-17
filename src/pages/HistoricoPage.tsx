@@ -51,7 +51,7 @@ export function HistoricoPage() {
         </div>
       )}
 
-      <section className="flex flex-col gap-3">
+      <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {gameplay.map((log) => (
           <div key={log.id} className="rounded-3xl bg-white/90 p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3">
