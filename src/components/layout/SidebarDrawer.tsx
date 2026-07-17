@@ -13,6 +13,7 @@ const LINKS = [
   { to: "/fichas", label: "Loja de Fichas", description: "Comprar fichas", icon: "💳" },
   { to: "/loja", label: "Loja de Produtos", description: "Trocar fichas, pontos ou dinheiro", icon: "🛍️" },
   { to: "/meus-pedidos", label: "Meus Pedidos", description: "Produtos a receber", icon: "📦" },
+  { to: "/minha-privacidade", label: "Minha Privacidade", description: "Dados e LGPD", icon: "LG" },
 ];
 
 function isAdminToken(): boolean {

@@ -281,3 +281,69 @@ export type LoyaltyDistribution = {
     percentage: number;
   }>;
 };
+
+export type PrivacyRequestType = "ACCESS" | "CORRECTION" | "DELETION" | "CONSENT_REVOCATION" | "OTHER";
+
+export type PrivacyRequestStatus = "OPEN" | "IN_REVIEW" | "COMPLETED" | "REJECTED";
+
+export type PrivacyRequest = {
+  id: string;
+  type: PrivacyRequestType;
+  message: string;
+  status: PrivacyRequestStatus;
+  response: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminPrivacyRequest = PrivacyRequest & {
+  user: { id: string; name: string; email: string };
+};
+
+export type UserPrivacyData = {
+  notice: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    cpf: string;
+    phone: string | null;
+    status: "ACTIVE" | "BLOCKED";
+    role: "CUSTOMER" | "ADMIN";
+    creditBalance: number;
+    totalCreditsPurchased: number;
+    pointsBalance: number;
+    privacyAcceptedAt: string | null;
+    privacyVersion: string | null;
+    createdAt: string;
+    updatedAt: string;
+    transactions: Array<{
+      id: string;
+      amountBrl: string;
+      creditsAwarded: number;
+      pointsAwarded: number;
+      status: "PENDING" | "APPROVED" | "FAILED";
+      createdAt: string;
+      package: { name: string } | null;
+    }>;
+    gameplayLogs: Array<{
+      id: string;
+      creditsDebited: number;
+      pulsesSent: number;
+      status: "SUCCESS" | "FAILED";
+      createdAt: string;
+      machine: { name: string; store: { name: string } };
+    }>;
+    productOrders: Array<{
+      id: string;
+      productName: string;
+      paymentMethod: ProductOrderPaymentMethod;
+      creditsSpent: number;
+      pointsSpent: number;
+      amountBrl: string | null;
+      status: ProductOrderStatus;
+      createdAt: string;
+    }>;
+    privacyRequests: PrivacyRequest[];
+  };
+};

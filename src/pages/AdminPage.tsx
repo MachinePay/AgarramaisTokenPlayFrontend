@@ -12,6 +12,7 @@ import type {
   Campaign,
   CreditPackage,
   AdminProductOrder,
+  AdminPrivacyRequest,
   LoyaltyDistribution,
   LoyaltyLevel,
   Product,
@@ -36,6 +37,7 @@ type AdminTab =
   | "machines"
   | "products"
   | "orders"
+  | "privacy"
   | "reports";
 
 type PackageForm = {
@@ -109,6 +111,34 @@ const inputClass =
 const filterInputClass =
   "h-11 rounded-xl border border-amber-100 bg-white px-3 text-sm font-medium text-brand-black outline-none shadow-sm transition-colors placeholder:text-gray-400 focus:border-brand-yellow focus:ring-2 focus:ring-brand-yellow/20";
 
+function maskCpf(value: string): string {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length < 2) return "***";
+  return `***.***.***-${digits.slice(-2)}`;
+}
+
+function maskPhone(value: string | null): string {
+  if (!value) return "Nao informado";
+  const digits = value.replace(/\D/g, "");
+  if (digits.length < 4) return "***";
+  return `(**) *****-${digits.slice(-4)}`;
+}
+
+const privacyRequestTypeLabel: Record<AdminPrivacyRequest["type"], string> = {
+  ACCESS: "Acesso aos dados",
+  CORRECTION: "Correcao",
+  DELETION: "Exclusao/anonimizacao",
+  CONSENT_REVOCATION: "Revogacao",
+  OTHER: "Outro",
+};
+
+const privacyRequestStatusLabel: Record<AdminPrivacyRequest["status"], string> = {
+  OPEN: "Aberto",
+  IN_REVIEW: "Em analise",
+  COMPLETED: "Concluido",
+  REJECTED: "Recusado",
+};
+
 type FilterableTab = Exclude<AdminTab, "summary" | "reports">;
 
 type AdminFilter = {
@@ -150,6 +180,7 @@ const defaultFilters: AdminFilters = {
   machines: { search: "", status: "ALL" },
   products: { search: "", status: "ALL" },
   orders: { search: "", status: "ALL" },
+  privacy: { search: "", status: "ALL" },
 };
 
 const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
@@ -164,6 +195,7 @@ const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
   { id: "machines", label: "Maquinas", icon: "🧸" },
   { id: "products", label: "Produtos", icon: "🛍️" },
   { id: "orders", label: "Entregas", icon: "📮" },
+  { id: "privacy", label: "LGPD", icon: "LG" },
   { id: "reports", label: "Relatorios", icon: "📈" },
 ];
 
@@ -428,7 +460,15 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
   const [machines, setMachines] = useState<AdminMachine[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<AdminProductOrder[]>([]);
+  const [privacyRequests, setPrivacyRequests] = useState<AdminPrivacyRequest[]>([]);
   const [operationsReport, setOperationsReport] = useState<AdminOperationsReport | null>(null);
+  const [gameplaySearched, setGameplaySearched] = useState(false);
+  const [gameplayLoading, setGameplayLoading] = useState(false);
+  const [gameplayStoreId, setGameplayStoreId] = useState("ALL");
+  const [gameplayMachineId, setGameplayMachineId] = useState("ALL");
+  const [gameplayMinCredits, setGameplayMinCredits] = useState("");
+  const [gameplayMaxCredits, setGameplayMaxCredits] = useState("");
+  const [gameplayLimit, setGameplayLimit] = useState("50");
   const [reportsLoading, setReportsLoading] = useState(false);
   const [reportDateFrom, setReportDateFrom] = useState(getDaysAgoInputValue(29));
   const [reportDateTo, setReportDateTo] = useState(todayInputValue);
@@ -669,6 +709,25 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     });
   }, [filters.machines, machines]);
 
+  const gameplayStoreMachines = useMemo(
+    () =>
+      gameplayStoreId === "ALL"
+        ? machines
+        : machines.filter((machine) => machine.store.id === gameplayStoreId),
+    [gameplayStoreId, machines],
+  );
+
+  const hasGameplayFilters = Boolean(
+    filters.gameplay.search.trim() ||
+      filters.gameplay.status !== "ALL" ||
+      filters.gameplay.dateFrom ||
+      filters.gameplay.dateTo ||
+      gameplayStoreId !== "ALL" ||
+      gameplayMachineId !== "ALL" ||
+      gameplayMinCredits ||
+      gameplayMaxCredits,
+  );
+
   const loadAdminData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -676,7 +735,6 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       const [
         usersData,
         transactionsData,
-        gameplayData,
         campaignsData,
         packagesData,
         levelsData,
@@ -684,10 +742,10 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         machinesData,
         productsData,
         ordersData,
+        privacyRequestsData,
       ] = await Promise.all([
         apiRequest<AdminUser[]>("/admin/users"),
         apiRequest<AdminTransaction[]>("/admin/transactions"),
-        apiRequest<AdminGameplayLog[]>("/admin/gameplay"),
         apiRequest<Campaign[]>("/admin/campaigns"),
         apiRequest<CreditPackage[]>("/admin/packages"),
         apiRequest<LoyaltyLevel[]>("/admin/levels"),
@@ -695,6 +753,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         apiRequest<AdminMachine[]>("/admin/machines"),
         apiRequest<Product[]>("/admin/products"),
         apiRequest<AdminProductOrder[]>("/admin/orders"),
+        apiRequest<AdminPrivacyRequest[]>("/admin/privacy-requests"),
       ]);
       const [summaryData, distributionData, settingsData] = await Promise.all([
         apiRequest<AdminDashboardSummary>("/admin/dashboard/summary"),
@@ -710,7 +769,6 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       setPointsPerCredit(String(settingsData.pointsPerCredit));
       setUsers(usersData);
       setTransactions(transactionsData);
-      setGameplayLogs(gameplayData);
       setCampaigns(campaignsData);
       setPackages(packagesData);
       setLevels(levelsData);
@@ -718,6 +776,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       setMachines(machinesData);
       setProducts(productsData);
       setOrders(ordersData);
+      setPrivacyRequests(privacyRequestsData);
 
       if (storesData[0]) {
         setMachineForm((current) => ({
@@ -735,6 +794,49 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
   useEffect(() => {
     loadAdminData();
   }, [loadAdminData]);
+
+  async function searchGameplayLogs() {
+    if (!hasGameplayFilters) {
+      setError("Informe pelo menos um filtro para buscar jogadas.");
+      setGameplayLogs([]);
+      setGameplaySearched(false);
+      return;
+    }
+
+    setGameplayLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      if (filters.gameplay.search.trim()) params.set("search", filters.gameplay.search.trim());
+      if (filters.gameplay.status !== "ALL") params.set("status", filters.gameplay.status);
+      if (filters.gameplay.dateFrom) params.set("dateFrom", filters.gameplay.dateFrom);
+      if (filters.gameplay.dateTo) params.set("dateTo", filters.gameplay.dateTo);
+      if (gameplayStoreId !== "ALL") params.set("storeId", gameplayStoreId);
+      if (gameplayMachineId !== "ALL") params.set("machineId", gameplayMachineId);
+      if (gameplayMinCredits) params.set("minCredits", gameplayMinCredits);
+      if (gameplayMaxCredits) params.set("maxCredits", gameplayMaxCredits);
+      if (gameplayLimit) params.set("limit", gameplayLimit);
+
+      const logs = await apiRequest<AdminGameplayLog[]>(`/admin/gameplay?${params.toString()}`);
+      setGameplayLogs(logs);
+      setGameplaySearched(true);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel buscar as jogadas");
+    } finally {
+      setGameplayLoading(false);
+    }
+  }
+
+  function clearGameplaySearch() {
+    clearFilter("gameplay");
+    setGameplayStoreId("ALL");
+    setGameplayMachineId("ALL");
+    setGameplayMinCredits("");
+    setGameplayMaxCredits("");
+    setGameplayLimit("50");
+    setGameplayLogs([]);
+    setGameplaySearched(false);
+  }
 
   const loadOperationsReport = useCallback(async () => {
     setReportsLoading(true);
@@ -1466,6 +1568,27 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     printWindow.document.close();
   }
 
+  async function updatePrivacyRequest(event: FormEvent<HTMLFormElement>, request: AdminPrivacyRequest) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    const data = new FormData(event.currentTarget);
+    try {
+      await apiRequest<AdminPrivacyRequest>(`/admin/privacy-requests/${request.id}`, {
+        method: "PUT",
+        body: {
+          status: String(data.get("status") || request.status),
+          response: String(data.get("response") || "") || null,
+        },
+      });
+      await loadAdminData();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel atualizar a solicitacao LGPD");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-5 py-5">
       <div className="relative overflow-hidden rounded-3xl bg-slate-950 px-5 py-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.22)] sm:px-7">
@@ -1685,8 +1808,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <p className="text-sm text-gray-500">
                     Saldo {user.creditBalance} fichas · Compradas {user.totalCreditsPurchased} · {user.pointsBalance} pontos
                   </p>
-                  <p className="text-xs text-gray-500">CPF {user.cpf}</p>
-                  <p className="text-xs text-gray-500">Telefone {user.phone || "Nao informado"}</p>
+                  <p className="text-xs text-gray-500">CPF {maskCpf(user.cpf)}</p>
+                  <p className="text-xs text-gray-500">Telefone {maskPhone(user.phone)}</p>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1.5">
                   <AdminTag tone={user.role === "ADMIN" ? "black" : "gray"}>{user.role}</AdminTag>
@@ -1826,25 +1949,125 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
 
       {!loading && activeTab === "gameplay" && (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <div className="sm:col-span-2 xl:col-span-3">
-            <AdminFilterBar
-              search={filters.gameplay.search}
-              status={filters.gameplay.status}
-              total={gameplayLogs.length}
-              filtered={filteredGameplayLogs.length}
-              searchPlaceholder="Buscar por usuário, máquina, loja ou telemetryId"
-              statusOptions={[
-                { value: "ALL", label: "Todas" },
-                { value: "SUCCESS", label: "Sucesso" },
-                { value: "FAILED", label: "Falhas" },
-              ]}
-              onSearchChange={(value) => updateFilter("gameplay", "search", value)}
-              onStatusChange={(value) => updateFilter("gameplay", "status", value)}
-              onClear={() => clearFilter("gameplay")}
-            />
+          <div className="rounded-2xl border border-white/80 bg-white/85 p-3 shadow-sm backdrop-blur sm:col-span-2 xl:col-span-3">
+            <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[1.5fr_150px_150px_150px]">
+              <div className="relative md:col-span-2 xl:col-span-1">
+                <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm">
+                  🔎
+                </span>
+                <input
+                  className={`${filterInputClass} w-full pl-9`}
+                  placeholder="Buscar por usuario, email, maquina, loja ou telemetryId"
+                  value={filters.gameplay.search}
+                  onChange={(event) => updateFilter("gameplay", "search", event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") void searchGameplayLogs();
+                  }}
+                />
+              </div>
+              <input
+                className={`${filterInputClass} w-full`}
+                aria-label="Data inicial"
+                type="date"
+                value={filters.gameplay.dateFrom ?? ""}
+                onChange={(event) => updateFilter("gameplay", "dateFrom", event.target.value)}
+              />
+              <input
+                className={`${filterInputClass} w-full`}
+                aria-label="Data final"
+                type="date"
+                value={filters.gameplay.dateTo ?? ""}
+                onChange={(event) => updateFilter("gameplay", "dateTo", event.target.value)}
+              />
+              <select
+                className={`${filterInputClass} w-full`}
+                value={filters.gameplay.status}
+                onChange={(event) => updateFilter("gameplay", "status", event.target.value)}
+              >
+                <option value="ALL">Todos status</option>
+                <option value="SUCCESS">Sucesso</option>
+                <option value="FAILED">Falhas</option>
+              </select>
+            </div>
+
+            <div className="mt-2 grid gap-2 md:grid-cols-2 xl:grid-cols-[1fr_1fr_130px_130px_130px_auto_auto]">
+              <select
+                className={`${filterInputClass} w-full`}
+                value={gameplayStoreId}
+                onChange={(event) => {
+                  setGameplayStoreId(event.target.value);
+                  setGameplayMachineId("ALL");
+                }}
+              >
+                <option value="ALL">Todas as lojas</option>
+                {stores.map((store) => (
+                  <option key={store.id} value={store.id}>
+                    {store.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                className={`${filterInputClass} w-full`}
+                value={gameplayMachineId}
+                onChange={(event) => setGameplayMachineId(event.target.value)}
+              >
+                <option value="ALL">Todas as maquinas</option>
+                {gameplayStoreMachines.map((machine) => (
+                  <option key={machine.id} value={machine.id}>
+                    {machine.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                className={`${filterInputClass} w-full`}
+                inputMode="numeric"
+                placeholder="Fichas min."
+                value={gameplayMinCredits}
+                onChange={(event) => setGameplayMinCredits(event.target.value.replace(/\D/g, ""))}
+              />
+              <input
+                className={`${filterInputClass} w-full`}
+                inputMode="numeric"
+                placeholder="Fichas max."
+                value={gameplayMaxCredits}
+                onChange={(event) => setGameplayMaxCredits(event.target.value.replace(/\D/g, ""))}
+              />
+              <select
+                className={`${filterInputClass} w-full`}
+                value={gameplayLimit}
+                onChange={(event) => setGameplayLimit(event.target.value)}
+              >
+                <option value="25">25 resultados</option>
+                <option value="50">50 resultados</option>
+                <option value="100">100 resultados</option>
+                <option value="200">200 resultados</option>
+              </select>
+              <AdminButton
+                type="button"
+                variant="primary"
+                disabled={gameplayLoading || !hasGameplayFilters}
+                onClick={() => void searchGameplayLogs()}
+                className="h-11"
+              >
+                {gameplayLoading ? "Buscando" : "Buscar"}
+              </AdminButton>
+              <AdminButton type="button" variant="secondary" onClick={clearGameplaySearch} className="h-11">
+                Limpar
+              </AdminButton>
+            </div>
+
+            <p className="mt-2 text-xs font-semibold text-gray-500">
+              {gameplaySearched
+                ? `Mostrando ${filteredGameplayLogs.length} de ${gameplayLogs.length} retornadas`
+                : "As jogadas so serao carregadas depois de pesquisar ou aplicar filtros."}
+            </p>
           </div>
-          {gameplayLogs.length === 0 && (
-            <AdminEmptyState icon="🕹️" message="Nenhuma jogada encontrada." />
+          {!gameplaySearched && !gameplayLoading && (
+            <AdminEmptyState icon="🕹️" message="Use os filtros acima para buscar jogadas." />
+          )}
+
+          {gameplaySearched && gameplayLogs.length === 0 && (
+            <AdminEmptyState icon="🕹️" message="Nenhuma jogada encontrada para os filtros informados." />
           )}
 
           {filteredGameplayLogs.map((log) => (
@@ -2875,6 +3098,84 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               </AdminCard>
             ))}
           </div>
+        </section>
+      )}
+
+      {!loading && activeTab === "privacy" && (
+        <section className="flex flex-col gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <AdminStatCard
+              icon="LG"
+              label="Abertas"
+              value={String(privacyRequests.filter((request) => request.status === "OPEN").length)}
+              tone="amber"
+            />
+            <AdminStatCard
+              icon="..."
+              label="Em analise"
+              value={String(privacyRequests.filter((request) => request.status === "IN_REVIEW").length)}
+              tone="blue"
+            />
+            <AdminStatCard
+              icon="OK"
+              label="Concluidas"
+              value={String(privacyRequests.filter((request) => request.status === "COMPLETED").length)}
+              tone="green"
+            />
+          </div>
+
+          <AdminFormSection title="Solicitacoes LGPD">
+            <p className="text-sm font-semibold text-gray-500">
+              Pedidos de titulares sobre acesso, correcao, exclusao ou consentimento.
+            </p>
+            {privacyRequests.length === 0 && <AdminEmptyState icon="LG" message="Nenhuma solicitacao LGPD registrada." />}
+            <div className="grid gap-3">
+              {privacyRequests.map((request) => (
+                <AdminCard key={request.id}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-bold text-brand-black">{privacyRequestTypeLabel[request.type]}</p>
+                      <p className="truncate text-sm text-gray-500">
+                        {request.user.name} · {request.user.email}
+                      </p>
+                      <p className="mt-2 text-sm font-semibold text-gray-600">{request.message}</p>
+                      <p className="mt-2 text-xs font-semibold text-gray-400">{formatDate(request.createdAt)}</p>
+                    </div>
+                    <AdminTag
+                      tone={
+                        request.status === "COMPLETED"
+                          ? "green"
+                          : request.status === "REJECTED"
+                            ? "red"
+                            : request.status === "IN_REVIEW"
+                              ? "gray"
+                              : "amber"
+                      }
+                    >
+                      {privacyRequestStatusLabel[request.status]}
+                    </AdminTag>
+                  </div>
+                  <form onSubmit={(event) => updatePrivacyRequest(event, request)} className="mt-3 grid gap-2">
+                    <select name="status" className={inputClass} defaultValue={request.status}>
+                      <option value="OPEN">Aberto</option>
+                      <option value="IN_REVIEW">Em analise</option>
+                      <option value="COMPLETED">Concluido</option>
+                      <option value="REJECTED">Recusado</option>
+                    </select>
+                    <textarea
+                      name="response"
+                      className={`${inputClass} min-h-24`}
+                      defaultValue={request.response ?? ""}
+                      placeholder="Resposta ao titular ou anotacao de atendimento"
+                    />
+                    <AdminButton type="submit" variant="primary" disabled={saving}>
+                      Salvar resposta
+                    </AdminButton>
+                  </form>
+                </AdminCard>
+              ))}
+            </div>
+          </AdminFormSection>
         </section>
       )}
 

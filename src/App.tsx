@@ -13,12 +13,17 @@ import { AdminPage } from "@/pages/AdminPage";
 import { HistoricoPage } from "@/pages/HistoricoPage";
 import { QrLojaPage } from "@/pages/QrLojaPage";
 import { QrMaquinaPage } from "@/pages/QrMaquinaPage";
+import { PrivacidadePage } from "@/pages/PrivacidadePage";
+import { TermosPage } from "@/pages/TermosPage";
+import { MinhaPrivacidadePage } from "@/pages/MinhaPrivacidadePage";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/entrar" element={<EntrarPage />} />
+      <Route path="/privacidade" element={<PrivacidadePage />} />
+      <Route path="/termos" element={<TermosPage />} />
 
       <Route
         path="/inicio"
@@ -75,6 +80,14 @@ function App() {
         element={
           <RequireAuth>
             <HistoricoPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/minha-privacidade"
+        element={
+          <RequireAuth>
+            <MinhaPrivacidadePage />
           </RequireAuth>
         }
       />

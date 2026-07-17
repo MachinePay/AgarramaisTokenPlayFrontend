@@ -9,7 +9,15 @@ type AuthState = {
   /** Incrementa a cada vez que o saldo sobe - usado como "key" para replayar a celebracao do navbar. */
   balanceBump: number;
   login: (email: string, password: string) => Promise<void>;
-  register: (input: { name: string; email: string; cpf: string; phone?: string; password: string }) => Promise<void>;
+  register: (input: {
+    name: string;
+    email: string;
+    cpf: string;
+    phone?: string;
+    password: string;
+    privacyAccepted: true;
+    privacyVersion: string;
+  }) => Promise<void>;
   logout: () => void;
   fetchNavbarSummary: () => Promise<void>;
 };

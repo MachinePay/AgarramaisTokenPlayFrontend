@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { ApiError } from "@/lib/api";
 
@@ -16,6 +16,7 @@ export function EntrarPage() {
   const [cpf, setCpf] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isRegisterMode = mode === "register";
@@ -29,7 +30,19 @@ export function EntrarPage() {
     setError(null);
     try {
       if (isRegisterMode) {
-        await register({ name, email, cpf, phone, password });
+        if (!privacyAccepted) {
+          setError("Voce precisa aceitar a Politica de Privacidade e os Termos de Uso.");
+          return;
+        }
+        await register({
+          name,
+          email,
+          cpf,
+          phone: phone || undefined,
+          password,
+          privacyAccepted: true,
+          privacyVersion: "2026-07-17",
+        });
       } else {
         await login(email, password);
       }
@@ -169,7 +182,6 @@ export function EntrarPage() {
               <LoginField label="Telefone">
                 <input
                   type="tel"
-                  required
                   minLength={8}
                   maxLength={20}
                   inputMode="tel"
@@ -199,9 +211,31 @@ export function EntrarPage() {
             </p>
           )}
 
+          {isRegisterMode && (
+            <label className="flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-3 text-xs font-bold leading-relaxed text-gray-600">
+              <input
+                type="checkbox"
+                checked={privacyAccepted}
+                onChange={(event) => setPrivacyAccepted(event.target.checked)}
+                className="mt-1 h-4 w-4 shrink-0 accent-orange-500"
+              />
+              <span>
+                Li e aceito a{" "}
+                <Link to="/privacidade" className="font-black text-orange-700 underline">
+                  Politica de Privacidade
+                </Link>{" "}
+                e os{" "}
+                <Link to="/termos" className="font-black text-orange-700 underline">
+                  Termos de Uso
+                </Link>
+                . Meus dados serao usados para criar minha conta, operar fichas, pedidos, pagamentos e historico.
+              </span>
+            </label>
+          )}
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || (isRegisterMode && !privacyAccepted)}
             className="home-cta mt-2 rounded-2xl bg-gradient-to-r from-brand-yellow to-orange-400 py-4 text-base font-black text-brand-black shadow-[0_16px_28px_rgba(245,158,11,0.28)] transition active:scale-[0.98] disabled:opacity-60"
           >
             {loading ? (isRegisterMode ? "Criando..." : "Entrando...") : isRegisterMode ? "Criar cadastro" : "Entrar e jogar"}
