@@ -1,6 +1,7 @@
 export type UserNavbarSummary = {
   name: string;
   creditBalance: number;
+  pointsBalance: number;
   currentLevelName: string | null;
   nextLevelName: string | null;
   progressPercentage: number;
@@ -38,6 +39,7 @@ export type CreditPackage = {
   amountBrl: string;
   baseCredits: number;
   bonusCredits: number;
+  pointsAwarded: number;
   isPopular: boolean;
   showOnHome: boolean;
   active: boolean;
@@ -53,6 +55,7 @@ export type Transaction = {
   status: "PENDING" | "APPROVED" | "FAILED";
   amountBrl: string;
   creditsAwarded: number;
+  pointsAwarded: number;
   checkoutUrl: string | null;
   pixQrCode?: string;
   pixQrCodeBase64?: string;
@@ -124,6 +127,7 @@ export type AdminUser = {
   role: "CUSTOMER" | "ADMIN";
   creditBalance: number;
   totalCreditsPurchased: number;
+  pointsBalance: number;
   createdAt: string;
   protected?: boolean;
 };
@@ -133,6 +137,7 @@ export type LoyaltyLevel = {
   levelName: string;
   requiredCredits: number;
   bonusCreditsReward: number;
+  pointsAwarded: number;
   status: "ACTIVE" | "DRAFT";
 };
 
@@ -227,6 +232,7 @@ export type AdminSettings = {
   tokenBundleAmountBrl: string;
   tokenBundleCredits: number;
   tokenValueBrl: string;
+  pointsPerCredit: number;
 };
 
 export type LoyaltyDistribution = {

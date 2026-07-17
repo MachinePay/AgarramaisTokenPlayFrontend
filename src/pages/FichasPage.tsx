@@ -29,6 +29,7 @@ export function FichasPage() {
         tokenBundleAmountBrl: "1.00",
         tokenBundleCredits: 1,
         tokenValueBrl: "1.00",
+        pointsPerCredit: 0,
       })),
     ])
       .then(([packagesData, settingsData]) => {

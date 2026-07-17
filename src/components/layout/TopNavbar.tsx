@@ -16,6 +16,7 @@ export function TopNavbar({ wide = false }: { wide?: boolean }) {
 
   const name = navbar?.name ?? "";
   const creditBalance = navbar?.creditBalance ?? 0;
+  const pointsBalance = navbar?.pointsBalance ?? 0;
   const levelName = navbar?.currentLevelName ?? "Iniciante";
   const progressPercentage = navbar?.progressPercentage ?? 0;
 
@@ -58,6 +59,9 @@ export function TopNavbar({ wide = false }: { wide?: boolean }) {
             </span>
             <span className={`truncate text-xs italic ${wide ? "text-white/55" : "text-white/55"}`}>
               Nível {levelName}
+            </span>
+            <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-xs font-bold text-white/85">
+              ★ {pointsBalance} pts
             </span>
           </div>
 

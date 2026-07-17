@@ -39,6 +39,7 @@ type PackageForm = {
   amountBrl: string;
   baseCredits: string;
   bonusCredits: string;
+  pointsAwarded: string;
   isPopular: boolean;
   showOnHome: boolean;
 };
@@ -57,6 +58,7 @@ type LevelForm = {
   levelName: string;
   requiredCredits: string;
   bonusCreditsReward: string;
+  pointsAwarded: string;
   status: "ACTIVE" | "DRAFT";
 };
 
@@ -187,7 +189,7 @@ async function loadAdminSettingsWithFallback(): Promise<AdminSettings> {
     return await apiRequest<AdminSettings>("/admin/settings");
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
-      return { tokenBundleAmountBrl: "1.00", tokenBundleCredits: 1, tokenValueBrl: "1.00" };
+      return { tokenBundleAmountBrl: "1.00", tokenBundleCredits: 1, tokenValueBrl: "1.00", pointsPerCredit: 0 };
     }
     throw err;
   }
@@ -417,6 +419,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
   const [filters, setFilters] = useState<AdminFilters>(defaultFilters);
   const [tokenBundleAmountBrl, setTokenBundleAmountBrl] = useState("1,00");
   const [tokenBundleCredits, setTokenBundleCredits] = useState("1");
+  const [pointsPerCredit, setPointsPerCredit] = useState("0");
 
   const [userForm, setUserForm] = useState<UserForm>({
     name: "",
@@ -432,6 +435,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     amountBrl: "",
     baseCredits: "",
   bonusCredits: "0",
+  pointsAwarded: "0",
   isPopular: false,
   showOnHome: false,
 });
@@ -439,6 +443,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     levelName: "",
     requiredCredits: "",
     bonusCreditsReward: "0",
+    pointsAwarded: "0",
     status: "ACTIVE",
   });
   const [storeForm, setStoreForm] = useState<StoreForm>({ name: "", location: "" });
@@ -646,6 +651,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       setSettings(settingsData);
       setTokenBundleAmountBrl(settingsData.tokenBundleAmountBrl.replace(".", ","));
       setTokenBundleCredits(String(settingsData.tokenBundleCredits));
+      setPointsPerCredit(String(settingsData.pointsPerCredit));
       setUsers(usersData);
       setTransactions(transactionsData);
       setGameplayLogs(gameplayData);
@@ -706,6 +712,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           amountBrl: toNumber(packageForm.amountBrl),
           baseCredits: toNumber(packageForm.baseCredits),
           bonusCredits: toNumber(packageForm.bonusCredits || "0"),
+          pointsAwarded: toNumber(packageForm.pointsAwarded || "0"),
           isPopular: packageForm.isPopular,
           showOnHome: packageForm.showOnHome,
           active: true,
@@ -716,6 +723,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         amountBrl: "",
         baseCredits: "",
         bonusCredits: "0",
+        pointsAwarded: "0",
         isPopular: false,
         showOnHome: false,
       });
@@ -826,11 +834,13 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         body: {
           tokenBundleAmountBrl: toNumber(tokenBundleAmountBrl),
           tokenBundleCredits: toNumber(tokenBundleCredits),
+          pointsPerCredit: toNumber(pointsPerCredit || "0"),
         },
       });
       setSettings(updated);
       setTokenBundleAmountBrl(updated.tokenBundleAmountBrl.replace(".", ","));
       setTokenBundleCredits(String(updated.tokenBundleCredits));
+      setPointsPerCredit(String(updated.pointsPerCredit));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o valor da ficha");
     } finally {
@@ -849,10 +859,17 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           levelName: levelForm.levelName,
           requiredCredits: toNumber(levelForm.requiredCredits),
           bonusCreditsReward: toNumber(levelForm.bonusCreditsReward || "0"),
+          pointsAwarded: toNumber(levelForm.pointsAwarded || "0"),
           status: levelForm.status,
         },
       });
-      setLevelForm({ levelName: "", requiredCredits: "", bonusCreditsReward: "0", status: "ACTIVE" });
+      setLevelForm({
+        levelName: "",
+        requiredCredits: "",
+        bonusCreditsReward: "0",
+        pointsAwarded: "0",
+        status: "ACTIVE",
+      });
       await loadAdminData();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o nivel");
@@ -996,6 +1013,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           levelName: String(data.get("levelName") ?? level.levelName),
           requiredCredits: toNumber(String(data.get("requiredCredits") ?? level.requiredCredits)),
           bonusCreditsReward: toNumber(String(data.get("bonusCreditsReward") ?? level.bonusCreditsReward)),
+          pointsAwarded: toNumber(String(data.get("pointsAwarded") ?? level.pointsAwarded)),
           status: data.get("status"),
         },
       });
@@ -1028,6 +1046,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           amountBrl: toNumber(String(data.get("amountBrl") ?? creditPackage.amountBrl)),
           baseCredits: toNumber(String(data.get("baseCredits") ?? creditPackage.baseCredits)),
           bonusCredits: toNumber(String(data.get("bonusCredits") ?? creditPackage.bonusCredits)),
+          pointsAwarded: toNumber(String(data.get("pointsAwarded") ?? creditPackage.pointsAwarded)),
           isPopular: data.get("isPopular") === "on",
           showOnHome: data.get("showOnHome") === "on",
         },
@@ -1514,7 +1533,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <p className="truncate font-bold text-brand-black">{user.name}</p>
                   <p className="truncate text-sm text-gray-500">{user.email}</p>
                   <p className="text-sm text-gray-500">
-                    Saldo {user.creditBalance} fichas · Compradas {user.totalCreditsPurchased}
+                    Saldo {user.creditBalance} fichas · Compradas {user.totalCreditsPurchased} · {user.pointsBalance} pontos
                   </p>
                   <p className="text-xs text-gray-500">CPF {user.cpf}</p>
                   <p className="text-xs text-gray-500">Telefone {user.phone || "Nao informado"}</p>
@@ -1959,7 +1978,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       {!loading && activeTab === "packages" && (
         <section className="flex flex-col gap-4">
           <AdminFormSection title="Valor da ficha" onSubmit={submitSettings}>
-            <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+            <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-extrabold uppercase text-gray-500">Reais</span>
                 <input
@@ -1982,6 +2001,16 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   onChange={(event) => setTokenBundleCredits(event.target.value)}
                 />
               </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Pontos por ficha avulsa</span>
+                <input
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={pointsPerCredit}
+                  onChange={(event) => setPointsPerCredit(event.target.value)}
+                />
+              </label>
               <AdminButton type="submit" variant="primary" disabled={saving} className="h-11 px-5">
                 Salvar valor
               </AdminButton>
@@ -1990,6 +2019,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               R$ {Number(settings?.tokenBundleAmountBrl ?? tokenBundleAmountBrl.replace(",", ".")).toFixed(2)} ={" "}
               {settings?.tokenBundleCredits ?? Number(tokenBundleCredits || 0)} ficha(s) · 1 ficha = R${" "}
               {Number(settings?.tokenValueBrl ?? (toNumber(tokenBundleAmountBrl) / Math.max(1, toNumber(tokenBundleCredits)))).toFixed(2)}
+              {" · "}
+              cada ficha avulsa comprada gera {settings?.pointsPerCredit ?? Number(pointsPerCredit || 0)} ponto(s)
             </div>
           </AdminFormSection>
 
@@ -2026,6 +2057,16 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                 onChange={(event) => setPackageForm({ ...packageForm, bonusCredits: event.target.value })}
               />
             </div>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-extrabold uppercase text-gray-500">Pontos ganhos na compra</span>
+              <input
+                className={inputClass}
+                inputMode="numeric"
+                placeholder="0"
+                value={packageForm.pointsAwarded}
+                onChange={(event) => setPackageForm({ ...packageForm, pointsAwarded: event.target.value })}
+              />
+            </label>
             <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
               <input
                 type="checkbox"
@@ -2074,7 +2115,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                     <p className="font-bold text-brand-black">{creditPackage.name}</p>
                     <p className="text-sm text-gray-500">
                       R$ {Number(creditPackage.amountBrl).toFixed(2)} ·{" "}
-                      {creditPackage.baseCredits + creditPackage.bonusCredits} fichas
+                      {creditPackage.baseCredits + creditPackage.bonusCredits} fichas · +{creditPackage.pointsAwarded} pontos
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2">
@@ -2104,6 +2145,13 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                     <input name="baseCredits" className={inputClass} inputMode="numeric" defaultValue={creditPackage.baseCredits} />
                     <input name="bonusCredits" className={inputClass} inputMode="numeric" defaultValue={creditPackage.bonusCredits} />
                   </div>
+                  <input
+                    name="pointsAwarded"
+                    className={inputClass}
+                    inputMode="numeric"
+                    placeholder="Pontos ganhos na compra"
+                    defaultValue={creditPackage.pointsAwarded}
+                  />
                   <div className="flex items-center justify-between gap-3">
                     <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
                       <input name="isPopular" type="checkbox" defaultChecked={creditPackage.isPopular} />
@@ -2151,6 +2199,16 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                 onChange={(event) => setLevelForm({ ...levelForm, bonusCreditsReward: event.target.value })}
               />
             </div>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-extrabold uppercase text-gray-500">Pontos ganhos ao subir de nível</span>
+              <input
+                className={inputClass}
+                inputMode="numeric"
+                placeholder="0"
+                value={levelForm.pointsAwarded}
+                onChange={(event) => setLevelForm({ ...levelForm, pointsAwarded: event.target.value })}
+              />
+            </label>
             <select
               className={inputClass}
               value={levelForm.status}
@@ -2189,7 +2247,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <div>
                     <p className="font-bold text-brand-black">{level.levelName}</p>
                     <p className="text-sm text-gray-500">
-                      {level.requiredCredits} fichas · +{level.bonusCreditsReward} bônus
+                      {level.requiredCredits} fichas · +{level.bonusCreditsReward} bônus · +{level.pointsAwarded} pontos
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2">
@@ -2215,11 +2273,12 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <div className="grid grid-cols-3 gap-2">
                     <input name="requiredCredits" className={inputClass} inputMode="numeric" defaultValue={level.requiredCredits} />
                     <input name="bonusCreditsReward" className={inputClass} inputMode="numeric" defaultValue={level.bonusCreditsReward} />
-                    <select name="status" className={inputClass} defaultValue={level.status}>
-                      <option value="ACTIVE">Ativo</option>
-                      <option value="DRAFT">Rascunho</option>
-                    </select>
+                    <input name="pointsAwarded" className={inputClass} inputMode="numeric" defaultValue={level.pointsAwarded} />
                   </div>
+                  <select name="status" className={inputClass} defaultValue={level.status}>
+                    <option value="ACTIVE">Ativo</option>
+                    <option value="DRAFT">Rascunho</option>
+                  </select>
                   <AdminButton type="submit" variant="primary" disabled={saving}>
                     Salvar nível
                   </AdminButton>
