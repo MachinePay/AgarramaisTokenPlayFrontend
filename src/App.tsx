@@ -16,6 +16,7 @@ import { QrMaquinaPage } from "@/pages/QrMaquinaPage";
 import { PrivacidadePage } from "@/pages/PrivacidadePage";
 import { TermosPage } from "@/pages/TermosPage";
 import { MinhaPrivacidadePage } from "@/pages/MinhaPrivacidadePage";
+import { AceitePrivacidadePage } from "@/pages/AceitePrivacidadePage";
 
 function App() {
   return (
@@ -88,6 +89,14 @@ function App() {
         element={
           <RequireAuth>
             <MinhaPrivacidadePage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/aceite-privacidade"
+        element={
+          <RequireAuth>
+            <AceitePrivacidadePage />
           </RequireAuth>
         }
       />

@@ -5,6 +5,7 @@ import type { AuthResponse, UserNavbarSummary } from "@/lib/types";
 type AuthState = {
   token: string | null;
   navbar: UserNavbarSummary | null;
+  privacyAcceptanceRequired: boolean | null;
   loading: boolean;
   /** Incrementa a cada vez que o saldo sobe - usado como "key" para replayar a celebracao do navbar. */
   balanceBump: number;
@@ -20,11 +21,14 @@ type AuthState = {
   }) => Promise<void>;
   logout: () => void;
   fetchNavbarSummary: () => Promise<void>;
+  fetchPrivacyStatus: () => Promise<void>;
+  acceptPrivacyPolicy: () => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   token: getToken(),
   navbar: null,
+  privacyAcceptanceRequired: null,
   loading: false,
   balanceBump: 0,
 
@@ -38,6 +42,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
       setToken(data.token);
       set({ token: data.token });
+      await get().fetchPrivacyStatus();
       await get().fetchNavbarSummary();
     } finally {
       set({ loading: false });
@@ -53,7 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         auth: false,
       });
       setToken(data.token);
-      set({ token: data.token });
+      set({ token: data.token, privacyAcceptanceRequired: false });
       await get().fetchNavbarSummary();
     } finally {
       set({ loading: false });
@@ -62,7 +67,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: () => {
     setToken(null);
-    set({ token: null, navbar: null });
+    set({ token: null, navbar: null, privacyAcceptanceRequired: null });
   },
 
   fetchNavbarSummary: async () => {
@@ -70,5 +75,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const navbar = await apiRequest<UserNavbarSummary>("/users/me");
     const gainedCredits = previous ? navbar.creditBalance > previous.creditBalance : false;
     set((state) => ({ navbar, balanceBump: gainedCredits ? state.balanceBump + 1 : state.balanceBump }));
+  },
+
+  fetchPrivacyStatus: async () => {
+    const status = await apiRequest<{ acceptanceRequired: boolean }>("/users/me/privacy-status");
+    set({ privacyAcceptanceRequired: status.acceptanceRequired });
+  },
+
+  acceptPrivacyPolicy: async () => {
+    await apiRequest("/users/me/privacy-acceptance", { method: "POST" });
+    set({ privacyAcceptanceRequired: false });
   },
 }));

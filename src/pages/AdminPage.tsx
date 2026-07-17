@@ -753,7 +753,10 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         apiRequest<AdminMachine[]>("/admin/machines"),
         apiRequest<Product[]>("/admin/products"),
         apiRequest<AdminProductOrder[]>("/admin/orders"),
-        apiRequest<AdminPrivacyRequest[]>("/admin/privacy-requests"),
+        apiRequest<AdminPrivacyRequest[]>("/admin/privacy-requests").catch((err) => {
+          if (err instanceof ApiError && err.status === 404) return [];
+          throw err;
+        }),
       ]);
       const [summaryData, distributionData, settingsData] = await Promise.all([
         apiRequest<AdminDashboardSummary>("/admin/dashboard/summary"),
