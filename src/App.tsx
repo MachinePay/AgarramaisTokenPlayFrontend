@@ -6,6 +6,8 @@ import { InicioPage } from "@/pages/InicioPage";
 import { LojasPage } from "@/pages/LojasPage";
 import { VitrinePage } from "@/pages/VitrinePage";
 import { FichasPage } from "@/pages/FichasPage";
+import { LojaProdutosPage } from "@/pages/LojaProdutosPage";
+import { MeusPedidosPage } from "@/pages/MeusPedidosPage";
 import { CheckoutRetornoPage } from "@/pages/CheckoutRetornoPage";
 import { AdminPage } from "@/pages/AdminPage";
 import { HistoricoPage } from "@/pages/HistoricoPage";
@@ -53,6 +55,22 @@ function App() {
       />
       <Route path="/creditos" element={<Navigate to="/fichas" replace />} />
       <Route
+        path="/loja"
+        element={
+          <RequireAuth>
+            <LojaProdutosPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/meus-pedidos"
+        element={
+          <RequireAuth>
+            <MeusPedidosPage />
+          </RequireAuth>
+        }
+      />
+      <Route
         path="/historico"
         element={
           <RequireAuth>
@@ -97,6 +115,14 @@ function App() {
         element={
           <RequireAuth wide>
             <AdminPage initialTab="reports" />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/pedidos"
+        element={
+          <RequireAuth wide>
+            <AdminPage initialTab="orders" />
           </RequireAuth>
         }
       />

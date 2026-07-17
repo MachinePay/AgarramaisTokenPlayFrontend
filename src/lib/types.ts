@@ -235,6 +235,44 @@ export type AdminSettings = {
   pointsPerCredit: number;
 };
 
+export type Product = {
+  id: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  priceCredits: number | null;
+  pricePoints: number | null;
+  priceBrl: string | null;
+  active: boolean;
+};
+
+export type ProductOrderPaymentMethod = "CREDITS" | "POINTS" | "MONEY";
+
+export type ProductOrderStatus = "PENDING_PAYMENT" | "AWAITING_DELIVERY" | "DELIVERED" | "CANCELED" | "FAILED";
+
+export type ProductOrder = {
+  id: string;
+  productId: string;
+  productName: string;
+  paymentMethod: ProductOrderPaymentMethod;
+  creditsSpent: number;
+  pointsSpent: number;
+  amountBrl: string | null;
+  status: ProductOrderStatus;
+  checkoutUrl: string | null;
+  pixQrCode?: string;
+  pixQrCodeBase64?: string;
+  createdAt: string;
+  deliveredAt: string | null;
+  canceledAt: string | null;
+  product?: { id: string; imageUrl: string | null };
+};
+
+export type AdminProductOrder = ProductOrder & {
+  user: { id: string; name: string; email: string };
+  product: { id: string; name: string; imageUrl: string | null };
+};
+
 export type LoyaltyDistribution = {
   totalUsers: number;
   distribution: Array<{

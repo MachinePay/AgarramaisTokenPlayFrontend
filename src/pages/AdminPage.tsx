@@ -11,8 +11,10 @@ import type {
   AdminUser,
   Campaign,
   CreditPackage,
+  AdminProductOrder,
   LoyaltyDistribution,
   LoyaltyLevel,
+  Product,
   Store,
 } from "@/lib/types";
 import { AdminCard } from "@/components/admin/AdminCard";
@@ -32,6 +34,8 @@ type AdminTab =
   | "levels"
   | "stores"
   | "machines"
+  | "products"
+  | "orders"
   | "reports";
 
 type PackageForm = {
@@ -60,6 +64,15 @@ type LevelForm = {
   bonusCreditsReward: string;
   pointsAwarded: string;
   status: "ACTIVE" | "DRAFT";
+};
+
+type ProductForm = {
+  name: string;
+  description: string;
+  imageUrl: string;
+  priceCredits: string;
+  pricePoints: string;
+  priceBrl: string;
 };
 
 type StoreForm = {
@@ -135,6 +148,8 @@ const defaultFilters: AdminFilters = {
   levels: { search: "", status: "ALL" },
   stores: { search: "", status: "ALL" },
   machines: { search: "", status: "ALL" },
+  products: { search: "", status: "ALL" },
+  orders: { search: "", status: "ALL" },
 };
 
 const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
@@ -147,6 +162,8 @@ const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
   { id: "levels", label: "Niveis", icon: "🏆" },
   { id: "stores", label: "Lojas", icon: "🏬" },
   { id: "machines", label: "Maquinas", icon: "🧸" },
+  { id: "products", label: "Produtos", icon: "🛍️" },
+  { id: "orders", label: "Entregas", icon: "📮" },
   { id: "reports", label: "Relatorios", icon: "📈" },
 ];
 
@@ -409,6 +426,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
   const [levels, setLevels] = useState<LoyaltyLevel[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [machines, setMachines] = useState<AdminMachine[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<AdminProductOrder[]>([]);
   const [operationsReport, setOperationsReport] = useState<AdminOperationsReport | null>(null);
   const [reportsLoading, setReportsLoading] = useState(false);
   const [reportDateFrom, setReportDateFrom] = useState(getDaysAgoInputValue(29));
@@ -445,6 +464,14 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     bonusCreditsReward: "0",
     pointsAwarded: "0",
     status: "ACTIVE",
+  });
+  const [productForm, setProductForm] = useState<ProductForm>({
+    name: "",
+    description: "",
+    imageUrl: "",
+    priceCredits: "",
+    pricePoints: "",
+    priceBrl: "",
   });
   const [storeForm, setStoreForm] = useState<StoreForm>({ name: "", location: "" });
   const [machineForm, setMachineForm] = useState<MachineForm>({
@@ -590,6 +617,31 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     });
   }, [filters.levels, levels]);
 
+  const filteredProducts = useMemo(() => {
+    const filter = filters.products;
+    return products.filter((product) => {
+      const statusMatches =
+        filter.status === "ALL" ||
+        (filter.status === "ACTIVE" && product.active) ||
+        (filter.status === "INACTIVE" && !product.active);
+      return (
+        statusMatches &&
+        matchesSearch(filter.search, [product.name, product.description, product.priceCredits, product.pricePoints, product.priceBrl])
+      );
+    });
+  }, [filters.products, products]);
+
+  const filteredOrders = useMemo(() => {
+    const filter = filters.orders;
+    return orders.filter((order) => {
+      const statusMatches = filter.status === "ALL" || order.status === filter.status;
+      return (
+        statusMatches &&
+        matchesSearch(filter.search, [order.productName, order.user.name, order.user.email, order.status])
+      );
+    });
+  }, [filters.orders, orders]);
+
   const filteredStores = useMemo(() => {
     const filter = filters.stores;
     return stores.filter((store) => {
@@ -630,6 +682,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         levelsData,
         storesData,
         machinesData,
+        productsData,
+        ordersData,
       ] = await Promise.all([
         apiRequest<AdminUser[]>("/admin/users"),
         apiRequest<AdminTransaction[]>("/admin/transactions"),
@@ -639,6 +693,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         apiRequest<LoyaltyLevel[]>("/admin/levels"),
         apiRequest<Store[]>("/admin/stores"),
         apiRequest<AdminMachine[]>("/admin/machines"),
+        apiRequest<Product[]>("/admin/products"),
+        apiRequest<AdminProductOrder[]>("/admin/orders"),
       ]);
       const [summaryData, distributionData, settingsData] = await Promise.all([
         apiRequest<AdminDashboardSummary>("/admin/dashboard/summary"),
@@ -660,6 +716,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       setLevels(levelsData);
       setStores(storesData);
       setMachines(machinesData);
+      setProducts(productsData);
+      setOrders(ordersData);
 
       if (storesData[0]) {
         setMachineForm((current) => ({
@@ -1109,6 +1167,98 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       await loadAdminData();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel atualizar a campanha");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function submitProduct(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      await apiRequest<Product>("/admin/products", {
+        method: "POST",
+        body: {
+          name: productForm.name,
+          description: productForm.description || undefined,
+          imageUrl: productForm.imageUrl || undefined,
+          priceCredits: productForm.priceCredits ? toNumber(productForm.priceCredits) : undefined,
+          pricePoints: productForm.pricePoints ? toNumber(productForm.pricePoints) : undefined,
+          priceBrl: productForm.priceBrl ? toNumber(productForm.priceBrl) : undefined,
+          active: true,
+        },
+      });
+      setProductForm({ name: "", description: "", imageUrl: "", priceCredits: "", pricePoints: "", priceBrl: "" });
+      await loadAdminData();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o produto");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function toggleProduct(product: Product) {
+    await apiRequest<Product>(`/admin/products/${product.id}`, {
+      method: "PUT",
+      body: { active: !product.active },
+    });
+    await loadAdminData();
+  }
+
+  async function updateProductPricing(event: FormEvent<HTMLFormElement>, product: Product) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    const data = new FormData(event.currentTarget);
+    const priceCredits = String(data.get("priceCredits") ?? "");
+    const pricePoints = String(data.get("pricePoints") ?? "");
+    const priceBrl = String(data.get("priceBrl") ?? "");
+
+    try {
+      await apiRequest<Product>(`/admin/products/${product.id}`, {
+        method: "PUT",
+        body: {
+          name: String(data.get("name") ?? product.name),
+          description: String(data.get("description") ?? "") || null,
+          imageUrl: String(data.get("imageUrl") ?? "") || null,
+          priceCredits: priceCredits ? toNumber(priceCredits) : null,
+          pricePoints: pricePoints ? toNumber(pricePoints) : null,
+          priceBrl: priceBrl ? toNumber(priceBrl) : null,
+        },
+      });
+      await loadAdminData();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel atualizar o produto");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deliverOrder(order: AdminProductOrder) {
+    setSaving(true);
+    setError(null);
+    try {
+      await apiRequest(`/admin/orders/${order.id}/deliver`, { method: "POST" });
+      await loadAdminData();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel marcar como entregue");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function cancelOrderAsAdmin(order: AdminProductOrder) {
+    if (!window.confirm(`Cancelar o pedido "${order.productName}" de ${order.user.name}? Fichas/pontos gastos serao estornados.`)) {
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      await apiRequest(`/admin/orders/${order.id}/cancel`, { method: "POST" });
+      await loadAdminData();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel cancelar o pedido");
     } finally {
       setSaving(false);
     }
@@ -2494,6 +2644,234 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                     </AdminButton>
                   </div>
                 </form>
+              </AdminCard>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!loading && activeTab === "products" && (
+        <section className="flex flex-col gap-4">
+          <AdminFormSection title="Cadastrar produto" onSubmit={submitProduct}>
+            <input
+              className={inputClass}
+              required
+              placeholder="Nome do produto"
+              value={productForm.name}
+              onChange={(event) => setProductForm({ ...productForm, name: event.target.value })}
+            />
+            <input
+              className={inputClass}
+              placeholder="Descricao (opcional)"
+              value={productForm.description}
+              onChange={(event) => setProductForm({ ...productForm, description: event.target.value })}
+            />
+            <input
+              className={inputClass}
+              placeholder="URL da imagem (opcional)"
+              value={productForm.imageUrl}
+              onChange={(event) => setProductForm({ ...productForm, imageUrl: event.target.value })}
+            />
+            <div className="grid grid-cols-3 gap-2">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Fichas</span>
+                <input
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="Ex: 50"
+                  value={productForm.priceCredits}
+                  onChange={(event) => setProductForm({ ...productForm, priceCredits: event.target.value })}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Pontos</span>
+                <input
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="Ex: 200"
+                  value={productForm.pricePoints}
+                  onChange={(event) => setProductForm({ ...productForm, pricePoints: event.target.value })}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">R$</span>
+                <input
+                  className={inputClass}
+                  inputMode="decimal"
+                  placeholder="Ex: 49,90"
+                  value={productForm.priceBrl}
+                  onChange={(event) => setProductForm({ ...productForm, priceBrl: event.target.value })}
+                />
+              </label>
+            </div>
+            <p className="text-xs font-semibold text-gray-500">
+              Preencha ao menos um preco. Deixe em branco os que nao se aplicam a este produto.
+            </p>
+            <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
+              Criar produto
+            </AdminButton>
+          </AdminFormSection>
+
+          <AdminFilterBar
+            search={filters.products.search}
+            status={filters.products.status}
+            total={products.length}
+            filtered={filteredProducts.length}
+            searchPlaceholder="Buscar por nome ou descricao"
+            statusOptions={[
+              { value: "ALL", label: "Todos" },
+              { value: "ACTIVE", label: "Ativos" },
+              { value: "INACTIVE", label: "Inativos" },
+            ]}
+            onSearchChange={(value) => updateFilter("products", "search", value)}
+            onStatusChange={(value) => updateFilter("products", "status", value)}
+            onClear={() => clearFilter("products")}
+          />
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {products.length === 0 && <AdminEmptyState icon="🛍️" message="Nenhum produto cadastrado." />}
+
+            {filteredProducts.map((product) => (
+              <AdminCard key={product.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-brand-black">{product.name}</p>
+                    <p className="text-sm text-gray-500">
+                      {[
+                        product.priceCredits != null ? `${product.priceCredits} fichas` : null,
+                        product.pricePoints != null ? `${product.pricePoints} pontos` : null,
+                        product.priceBrl != null ? `R$ ${Number(product.priceBrl).toFixed(2)}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-col gap-2">
+                    <AdminButton variant={product.active ? "primary" : "secondary"} onClick={() => toggleProduct(product)}>
+                      {product.active ? "Ativo" : "Inativo"}
+                    </AdminButton>
+                    <AdminButton
+                      variant="danger"
+                      disabled={saving}
+                      onClick={() =>
+                        deleteAdminResource(`/admin/products/${product.id}`, `Excluir o produto "${product.name}"?`)
+                      }
+                    >
+                      Excluir
+                    </AdminButton>
+                  </div>
+                </div>
+                <form onSubmit={(event) => updateProductPricing(event, product)} className="mt-3 grid gap-2">
+                  <input name="name" className={inputClass} defaultValue={product.name} />
+                  <input name="description" className={inputClass} defaultValue={product.description ?? ""} placeholder="Descricao" />
+                  <input name="imageUrl" className={inputClass} defaultValue={product.imageUrl ?? ""} placeholder="URL da imagem" />
+                  <div className="grid grid-cols-3 gap-2">
+                    <input
+                      name="priceCredits"
+                      className={inputClass}
+                      inputMode="numeric"
+                      defaultValue={product.priceCredits ?? ""}
+                      placeholder="Fichas"
+                    />
+                    <input
+                      name="pricePoints"
+                      className={inputClass}
+                      inputMode="numeric"
+                      defaultValue={product.pricePoints ?? ""}
+                      placeholder="Pontos"
+                    />
+                    <input
+                      name="priceBrl"
+                      className={inputClass}
+                      inputMode="decimal"
+                      defaultValue={product.priceBrl ?? ""}
+                      placeholder="R$"
+                    />
+                  </div>
+                  <AdminButton type="submit" variant="primary" disabled={saving}>
+                    Salvar
+                  </AdminButton>
+                </form>
+              </AdminCard>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!loading && activeTab === "orders" && (
+        <section className="flex flex-col gap-4">
+          <AdminFilterBar
+            search={filters.orders.search}
+            status={filters.orders.status}
+            total={orders.length}
+            filtered={filteredOrders.length}
+            searchPlaceholder="Buscar por produto, cliente ou email"
+            statusOptions={[
+              { value: "ALL", label: "Todos" },
+              { value: "AWAITING_DELIVERY", label: "A entregar" },
+              { value: "PENDING_PAYMENT", label: "Aguardando pagamento" },
+              { value: "DELIVERED", label: "Entregues" },
+              { value: "CANCELED", label: "Cancelados" },
+              { value: "FAILED", label: "Falhos" },
+            ]}
+            onSearchChange={(value) => updateFilter("orders", "search", value)}
+            onStatusChange={(value) => updateFilter("orders", "status", value)}
+            onClear={() => clearFilter("orders")}
+          />
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {orders.length === 0 && <AdminEmptyState icon="📮" message="Nenhum pedido de produto ainda." />}
+
+            {filteredOrders.map((order) => (
+              <AdminCard key={order.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate font-bold text-brand-black">{order.productName}</p>
+                    <p className="truncate text-sm text-gray-500">
+                      {order.user.name} · {order.user.email}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      {order.paymentMethod === "CREDITS" && `${order.creditsSpent} fichas`}
+                      {order.paymentMethod === "POINTS" && `${order.pointsSpent} pontos`}
+                      {order.paymentMethod === "MONEY" && `R$ ${Number(order.amountBrl ?? 0).toFixed(2)}`}
+                    </p>
+                  </div>
+                  <AdminTag
+                    tone={
+                      order.status === "AWAITING_DELIVERY"
+                        ? "black"
+                        : order.status === "DELIVERED"
+                          ? "green"
+                          : order.status === "PENDING_PAYMENT"
+                            ? "gray"
+                            : "red"
+                    }
+                  >
+                    {order.status}
+                  </AdminTag>
+                </div>
+                {order.status === "AWAITING_DELIVERY" && (
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <AdminButton variant="primary" disabled={saving} onClick={() => deliverOrder(order)}>
+                      Marcar entregue
+                    </AdminButton>
+                    <AdminButton variant="danger" disabled={saving} onClick={() => cancelOrderAsAdmin(order)}>
+                      Cancelar
+                    </AdminButton>
+                  </div>
+                )}
+                {order.status === "PENDING_PAYMENT" && (
+                  <div className="mt-3">
+                    <AdminButton
+                      variant="danger"
+                      disabled={saving}
+                      onClick={() => cancelOrderAsAdmin(order)}
+                      className="w-full"
+                    >
+                      Cancelar
+                    </AdminButton>
+                  </div>
+                )}
               </AdminCard>
             ))}
           </div>

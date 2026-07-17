@@ -11,6 +11,8 @@ const LINKS = [
   { to: "/inicio", label: "Inicio", description: "Promocoes e ofertas", icon: "🎯" },
   { to: "/lojas", label: "Lojas", description: "Escolher unidade", icon: "🏬" },
   { to: "/fichas", label: "Loja de Fichas", description: "Comprar fichas", icon: "💳" },
+  { to: "/loja", label: "Loja de Produtos", description: "Trocar fichas, pontos ou dinheiro", icon: "🛍️" },
+  { to: "/meus-pedidos", label: "Meus Pedidos", description: "Produtos a receber", icon: "📦" },
 ];
 
 function isAdminToken(): boolean {
@@ -33,6 +35,7 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
     ? [
         ...LINKS,
         { to: "/admin", label: "Admin", description: "Gestao completa", icon: "⚙️" },
+        { to: "/admin/pedidos", label: "Produtos a Entregar", description: "Fila de entregas", icon: "📮" },
         { to: "/admin/relatorios", label: "Relatorios", description: "Indicadores e rankings", icon: "📈" },
       ]
     : LINKS;
