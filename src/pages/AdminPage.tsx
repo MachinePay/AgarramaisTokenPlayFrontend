@@ -75,6 +75,7 @@ type ProductForm = {
   priceCredits: string;
   pricePoints: string;
   priceBrl: string;
+  cardPriceBrl: string;
 };
 
 type StoreForm = {
@@ -512,6 +513,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     priceCredits: "",
     pricePoints: "",
     priceBrl: "",
+    cardPriceBrl: "",
   });
   const [storeForm, setStoreForm] = useState<StoreForm>({ name: "", location: "" });
   const [machineForm, setMachineForm] = useState<MachineForm>({
@@ -666,7 +668,14 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         (filter.status === "INACTIVE" && !product.active);
       return (
         statusMatches &&
-        matchesSearch(filter.search, [product.name, product.description, product.priceCredits, product.pricePoints, product.priceBrl])
+        matchesSearch(filter.search, [
+          product.name,
+          product.description,
+          product.priceCredits,
+          product.pricePoints,
+          product.priceBrl,
+          product.cardPriceBrl,
+        ])
       );
     });
   }, [filters.products, products]);
@@ -1291,10 +1300,11 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           priceCredits: productForm.priceCredits ? toNumber(productForm.priceCredits) : undefined,
           pricePoints: productForm.pricePoints ? toNumber(productForm.pricePoints) : undefined,
           priceBrl: productForm.priceBrl ? toNumber(productForm.priceBrl) : undefined,
+          cardPriceBrl: productForm.cardPriceBrl ? toNumber(productForm.cardPriceBrl) : undefined,
           active: true,
         },
       });
-      setProductForm({ name: "", description: "", imageUrl: "", priceCredits: "", pricePoints: "", priceBrl: "" });
+      setProductForm({ name: "", description: "", imageUrl: "", priceCredits: "", pricePoints: "", priceBrl: "", cardPriceBrl: "" });
       await loadAdminData();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o produto");
@@ -1319,6 +1329,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     const priceCredits = String(data.get("priceCredits") ?? "");
     const pricePoints = String(data.get("pricePoints") ?? "");
     const priceBrl = String(data.get("priceBrl") ?? "");
+    const cardPriceBrl = String(data.get("cardPriceBrl") ?? "");
 
     try {
       await apiRequest<Product>(`/admin/products/${product.id}`, {
@@ -1330,6 +1341,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           priceCredits: priceCredits ? toNumber(priceCredits) : null,
           pricePoints: pricePoints ? toNumber(pricePoints) : null,
           priceBrl: priceBrl ? toNumber(priceBrl) : null,
+          cardPriceBrl: cardPriceBrl ? toNumber(cardPriceBrl) : null,
         },
       });
       await loadAdminData();
@@ -2408,7 +2420,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               value={packageForm.name}
               onChange={(event) => setPackageForm({ ...packageForm, name: event.target.value })}
             />
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
               <input
                 className={inputClass}
                 required
@@ -2920,13 +2932,23 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-extrabold uppercase text-gray-500">R$</span>
+                <span className="text-xs font-extrabold uppercase text-gray-500">Pix R$</span>
                 <input
                   className={inputClass}
                   inputMode="decimal"
                   placeholder="Ex: 49,90"
                   value={productForm.priceBrl}
                   onChange={(event) => setProductForm({ ...productForm, priceBrl: event.target.value })}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Cartao R$</span>
+                <input
+                  className={inputClass}
+                  inputMode="decimal"
+                  placeholder="Ex: 54,90"
+                  value={productForm.cardPriceBrl}
+                  onChange={(event) => setProductForm({ ...productForm, cardPriceBrl: event.target.value })}
                 />
               </label>
             </div>
@@ -2966,7 +2988,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                       {[
                         product.priceCredits != null ? `${product.priceCredits} fichas` : null,
                         product.pricePoints != null ? `${product.pricePoints} pontos` : null,
-                        product.priceBrl != null ? `R$ ${Number(product.priceBrl).toFixed(2)}` : null,
+                        product.priceBrl != null ? `Pix R$ ${Number(product.priceBrl).toFixed(2)}` : null,
+                        product.cardPriceBrl != null ? `Cartao R$ ${Number(product.cardPriceBrl).toFixed(2)}` : null,
                       ]
                         .filter(Boolean)
                         .join(" · ")}
@@ -2991,7 +3014,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <input name="name" className={inputClass} defaultValue={product.name} />
                   <input name="description" className={inputClass} defaultValue={product.description ?? ""} placeholder="Descricao" />
                   <input name="imageUrl" className={inputClass} defaultValue={product.imageUrl ?? ""} placeholder="URL da imagem" />
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
                     <input
                       name="priceCredits"
                       className={inputClass}
@@ -3012,6 +3035,13 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                       inputMode="decimal"
                       defaultValue={product.priceBrl ?? ""}
                       placeholder="R$"
+                    />
+                    <input
+                      name="cardPriceBrl"
+                      className={inputClass}
+                      inputMode="decimal"
+                      defaultValue={product.cardPriceBrl ?? ""}
+                      placeholder="Cartao R$"
                     />
                   </div>
                   <AdminButton type="submit" variant="primary" disabled={saving}>

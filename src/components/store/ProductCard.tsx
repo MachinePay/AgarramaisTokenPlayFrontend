@@ -10,6 +10,8 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, busy, onBuyCredits, onBuyPoints, onBuyMoney, onBuyMoneyPix }: ProductCardProps) {
+  const cardPriceBrl = product.cardPriceBrl ?? product.priceBrl;
+
   return (
     <div className="overflow-hidden rounded-3xl bg-white/95 shadow-[0_18px_42px_rgba(15,23,42,0.10)]">
       {product.imageUrl ? (
@@ -30,7 +32,7 @@ export function ProductCard({ product, busy, onBuyCredits, onBuyPoints, onBuyMon
               onClick={() => onBuyCredits(product)}
               className="flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-brand-yellow to-orange-400 px-4 py-3 text-sm font-black text-brand-black shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98] disabled:opacity-50"
             >
-              <span>💳 Comprar com fichas</span>
+              <span>Comprar com fichas</span>
               <span>{product.priceCredits}</span>
             </button>
           )}
@@ -42,29 +44,33 @@ export function ProductCard({ product, busy, onBuyCredits, onBuyPoints, onBuyMon
               onClick={() => onBuyPoints(product)}
               className="flex w-full items-center justify-between rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/20 transition-all active:scale-[0.98] disabled:opacity-50"
             >
-              <span>★ Resgatar com pontos</span>
+              <span>Resgatar com pontos</span>
               <span>{product.pricePoints}</span>
             </button>
           )}
 
-          {product.priceBrl != null && (
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => onBuyMoneyPix(product)}
-                className="rounded-2xl border border-gray-200 px-3 py-3 text-xs font-black text-brand-black transition-all active:scale-[0.98] disabled:opacity-50"
-              >
-                Pix · R$ {Number(product.priceBrl).toFixed(2)}
-              </button>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => onBuyMoney(product)}
-                className="rounded-2xl border border-gray-200 px-3 py-3 text-xs font-black text-brand-black transition-all active:scale-[0.98] disabled:opacity-50"
-              >
-                Cartao/MP · R$ {Number(product.priceBrl).toFixed(2)}
-              </button>
+          {(product.priceBrl != null || cardPriceBrl != null) && (
+            <div className={`grid gap-2 ${product.priceBrl != null && cardPriceBrl != null ? "grid-cols-2" : "grid-cols-1"}`}>
+              {product.priceBrl != null && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => onBuyMoneyPix(product)}
+                  className="rounded-2xl border border-gray-200 px-3 py-3 text-xs font-black text-brand-black transition-all active:scale-[0.98] disabled:opacity-50"
+                >
+                  Pix - R$ {Number(product.priceBrl).toFixed(2)}
+                </button>
+              )}
+              {cardPriceBrl != null && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => onBuyMoney(product)}
+                  className="rounded-2xl border border-gray-200 px-3 py-3 text-xs font-black text-brand-black transition-all active:scale-[0.98] disabled:opacity-50"
+                >
+                  Cartao - R$ {Number(cardPriceBrl).toFixed(2)}
+                </button>
+              )}
             </div>
           )}
         </div>

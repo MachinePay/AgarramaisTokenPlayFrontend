@@ -243,6 +243,7 @@ export type Product = {
   priceCredits: number | null;
   pricePoints: number | null;
   priceBrl: string | null;
+  cardPriceBrl: string | null;
   active: boolean;
 };
 
