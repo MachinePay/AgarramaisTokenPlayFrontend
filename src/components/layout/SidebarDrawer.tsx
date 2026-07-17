@@ -57,11 +57,11 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
       />
 
       <nav
-        className={`absolute left-0 top-0 flex h-full w-80 max-w-[86%] flex-col overflow-hidden bg-white shadow-2xl transition-transform duration-200 ${
+        className={`absolute left-0 top-0 flex h-dvh w-80 max-w-[86%] flex-col overflow-hidden bg-white shadow-2xl transition-transform duration-200 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="relative overflow-hidden bg-slate-950 px-5 pb-5 pt-4 text-white">
+        <div className="relative shrink-0 overflow-hidden bg-slate-950 px-5 pb-5 pt-4 text-white">
           <span aria-hidden className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand-yellow/25" />
           <span aria-hidden className="absolute bottom-2 right-14 h-12 w-12 rounded-full bg-orange-500/25" />
           <div className="relative flex items-center justify-between">
@@ -105,11 +105,11 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
           </div>
         </div>
 
-        <div className="px-4 pb-2 pt-4">
+        <div className="shrink-0 px-4 pb-2 pt-4">
           <p className="px-2 text-xs font-black uppercase tracking-[0.18em] text-gray-400">Navegacao</p>
         </div>
 
-        <ul className="flex flex-1 flex-col gap-2 px-3">
+        <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain px-3 pb-3 [scrollbar-gutter:stable]">
           {links.map((link) => {
             const active = location.pathname === link.to || location.pathname.startsWith(`${link.to}/`);
             return (
@@ -146,7 +146,7 @@ export function SidebarDrawer({ open, onClose }: SidebarDrawerProps) {
           })}
         </ul>
 
-        <div className="border-t border-gray-100 bg-white p-3">
+        <div className="shrink-0 border-t border-gray-100 bg-white p-3">
           <button
             type="button"
             onClick={() => {
