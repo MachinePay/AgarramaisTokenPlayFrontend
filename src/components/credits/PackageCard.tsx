@@ -50,7 +50,9 @@ export function PackageCard({ creditPackage, loading, onBuy, onBuyPix }: Package
           <p className={`text-4xl font-black leading-none ${isRecommended ? "text-brand-black" : "text-brand-yellow"}`}>
             {totalCredits}
           </p>
-          <p className={`text-sm font-bold ${isRecommended ? "text-brand-black/70" : "text-white/65"}`}>fichas</p>
+          <p className={`text-sm font-bold ${isRecommended ? "text-brand-black/70" : "text-white/65"}`}>
+            {creditPackage.baseCredits} fichas
+          </p>
         </div>
         <div className="text-right">
           <p className={`text-xs font-bold uppercase ${isRecommended ? "text-brand-black/65" : "text-white/55"}`}>
