@@ -30,6 +30,11 @@ body {
     #060814;
 }
 
+.landing-viewport {
+  max-width: none;
+  width: 100%;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -146,4 +151,35 @@ body {
 
 .landing-cta {
   animation: cta-pulse 1.8s ease-in-out infinite;
+}
+
+@media (min-width: 1024px) {
+  .landing-hero::before {
+    background:
+      linear-gradient(90deg, rgba(6, 8, 20, 0.5), rgba(10, 14, 30, 0.88) 56%, rgba(6, 8, 20, 1)),
+      radial-gradient(circle at 78% 18%, rgba(246, 200, 51, 0.18), transparent 22%),
+      radial-gradient(circle at 18% 68%, rgba(249, 115, 22, 0.13), transparent 20%);
+  }
+
+  .landing-spot--yellow {
+    right: 8%;
+    top: 9rem;
+    width: 18rem;
+    height: 18rem;
+  }
+
+  .landing-spot--orange {
+    left: 6%;
+    top: auto;
+    bottom: 7rem;
+    width: 12rem;
+    height: 12rem;
+  }
+
+  .landing-spot--blue {
+    right: 34%;
+    bottom: 8rem;
+    width: 10rem;
+    height: 10rem;
+  }
 }
