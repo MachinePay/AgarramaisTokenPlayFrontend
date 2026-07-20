@@ -4,6 +4,8 @@ import { apiRequest } from "@/lib/api";
 import type { Store } from "@/lib/types";
 import { StoreCard } from "@/components/stores/StoreCard";
 import { useSelectedStoreStore } from "@/store/useSelectedStoreStore";
+import { QrCodeScannerModal } from "@/components/qr/QrCodeScannerModal";
+import { getQrTargetPath } from "@/lib/qr";
 
 export function LojasPage() {
   const navigate = useNavigate();
@@ -13,6 +15,7 @@ export function LojasPage() {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [favoriteLoadingId, setFavoriteLoadingId] = useState<string | null>(null);
+  const [isQrScannerOpen, setQrScannerOpen] = useState(false);
 
   useEffect(() => {
     apiRequest<Store[]>("/stores/me")
@@ -39,6 +42,15 @@ export function LojasPage() {
     navigate(`/lojas/${store.id}`);
   }
 
+  function handleQrScan(value: string): boolean {
+    const targetPath = getQrTargetPath(value);
+    if (!targetPath) return false;
+
+    setQrScannerOpen(false);
+    navigate(targetPath);
+    return true;
+  }
+
   async function toggleFavorite(store: Store) {
     const nextFavorite = !store.isFavorite;
     setFavoriteLoadingId(store.id);
@@ -62,7 +74,16 @@ export function LojasPage() {
 
   return (
     <div className="flex flex-col gap-4 px-4 py-5">
-      <h1 className="text-xl font-bold text-brand-black">Escolha a loja</h1>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-xl font-bold text-brand-black">Escolha a loja</h1>
+        <button
+          type="button"
+          onClick={() => setQrScannerOpen(true)}
+          className="rounded-full bg-brand-yellow px-4 py-2.5 text-xs font-black uppercase text-brand-black shadow-[0_10px_22px_rgba(245,158,11,0.22)] transition active:scale-[0.98]"
+        >
+          Ler QR Code
+        </button>
+      </div>
 
       <input
         type="search"
@@ -89,6 +110,8 @@ export function LojasPage() {
           />
         ))}
       </div>
+
+      <QrCodeScannerModal open={isQrScannerOpen} onClose={() => setQrScannerOpen(false)} onScan={handleQrScan} />
     </div>
   );
 }
