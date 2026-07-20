@@ -185,19 +185,19 @@ const defaultFilters: AdminFilters = {
 };
 
 const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
-  { id: "summary", label: "Resumo", icon: "ðŸ“Š" },
-  { id: "users", label: "Usuarios", icon: "ðŸ‘¥" },
-  { id: "transactions", label: "Transacoes", icon: "ðŸ’³" },
-  { id: "gameplay", label: "Jogadas", icon: "ðŸ•¹ï¸" },
-  { id: "campaigns", label: "Campanhas", icon: "ðŸŽ¯" },
-  { id: "packages", label: "Pacotes", icon: "ðŸŽ" },
-  { id: "levels", label: "Niveis", icon: "ðŸ†" },
-  { id: "stores", label: "Lojas", icon: "ðŸ¬" },
-  { id: "machines", label: "Maquinas", icon: "ðŸ§¸" },
-  { id: "products", label: "Produtos", icon: "ðŸ›ï¸" },
-  { id: "orders", label: "Entregas", icon: "ðŸ“®" },
+  { id: "summary", label: "Resumo", icon: "RS" },
+  { id: "users", label: "Usuarios", icon: "US" },
+  { id: "transactions", label: "Transacoes", icon: "TX" },
+  { id: "gameplay", label: "Jogadas", icon: "JG" },
+  { id: "campaigns", label: "Campanhas", icon: "CP" },
+  { id: "packages", label: "Pacotes", icon: "PK" },
+  { id: "levels", label: "Niveis", icon: "NV" },
+  { id: "stores", label: "Lojas", icon: "LJ" },
+  { id: "machines", label: "Maquinas", icon: "MQ" },
+  { id: "products", label: "Produtos", icon: "PR" },
+  { id: "orders", label: "Entregas", icon: "EN" },
   { id: "privacy", label: "LGPD", icon: "LG" },
-  { id: "reports", label: "Relatorios", icon: "ðŸ“ˆ" },
+  { id: "reports", label: "Relatorios", icon: "RP" },
 ];
 
 function toNumber(value: string): number {
@@ -1634,7 +1634,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span aria-hidden className="text-3xl">ðŸ§¸</span>
+              <span aria-hidden className="rounded-2xl bg-brand-yellow px-3 py-2 text-sm font-black text-brand-black">AM</span>
               <h1 className="text-3xl font-black text-white sm:text-4xl">Painel Admin</h1>
             </div>
             <p className="max-w-2xl text-sm font-medium text-white/70">
@@ -1670,7 +1670,9 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                 : "bg-white text-gray-500 hover:bg-amber-50 hover:text-brand-black"
             }`}
           >
-            <span aria-hidden>{tab.icon}</span>
+            <span aria-hidden className="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-black/5 px-1 text-[10px] font-black">
+              {tab.icon}
+            </span>
             {tab.label}
           </button>
         ))}
@@ -3236,7 +3238,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       {!loading && activeTab === "reports" && (
         <section className="flex flex-col gap-4">
           <AdminCard className="border-amber-100 bg-white/90">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-col gap-3">
               <div>
                 <p className="text-xs font-black uppercase text-orange-600">Operacao</p>
                 <h2 className="text-2xl font-black text-brand-black">Relatorios gerenciais</h2>
@@ -3244,7 +3246,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   Faturamento, fichas, jogadas, rankings de clientes, pacotes, lojas e maquinas.
                 </p>
               </div>
-              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[130px_130px_170px_170px_160px_160px_auto]">
+              <div className="grid w-full gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
                 <input
                   className={filterInputClass}
                   type="date"
@@ -3303,7 +3305,13 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <option value="SUCCESS">Jogadas sucesso</option>
                   <option value="FAILED">Jogadas falhas</option>
                 </select>
-                <AdminButton type="button" variant="primary" disabled={reportsLoading} onClick={loadOperationsReport}>
+                <AdminButton
+                  type="button"
+                  variant="primary"
+                  disabled={reportsLoading}
+                  onClick={loadOperationsReport}
+                  className="h-11 w-full"
+                >
                   {reportsLoading ? "Atualizando..." : "Atualizar"}
                 </AdminButton>
               </div>
