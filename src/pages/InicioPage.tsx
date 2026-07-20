@@ -20,15 +20,8 @@ export function InicioPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const firstStore = stores[0] ?? null;
-
   function goToFirstStore() {
-    if (!firstStore) {
-      navigate("/lojas");
-      return;
-    }
-    selectStore(firstStore.id, firstStore.name);
-    navigate(`/lojas/${firstStore.id}`);
+    navigate("/lojas");
   }
 
   return (

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { SidebarDrawer } from "@/components/layout/SidebarDrawer";
+import { QrCodeScannerModal } from "@/components/qr/QrCodeScannerModal";
 
 /**
  * Navbar fixa no topo, presente em todas as telas autenticadas do WebApp.
@@ -10,6 +11,8 @@ import { SidebarDrawer } from "@/components/layout/SidebarDrawer";
  */
 export function TopNavbar({ wide = false }: { wide?: boolean }) {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
+  const [isQrScannerOpen, setQrScannerOpen] = useState(false);
+  const navigate = useNavigate();
   const navbar = useAuthStore((state) => state.navbar);
   const balanceBump = useAuthStore((state) => state.balanceBump);
 
@@ -18,6 +21,15 @@ export function TopNavbar({ wide = false }: { wide?: boolean }) {
   const pointsBalance = navbar?.pointsBalance ?? 0;
   const levelName = navbar?.currentLevelName ?? "Iniciante";
   const progressPercentage = navbar?.progressPercentage ?? 0;
+
+  function handleQrScan(value: string): boolean {
+    const targetPath = getQrTargetPath(value);
+    if (!targetPath) return false;
+
+    setQrScannerOpen(false);
+    navigate(targetPath);
+    return true;
+  }
 
   return (
     <>
@@ -59,11 +71,43 @@ export function TopNavbar({ wide = false }: { wide?: boolean }) {
             </span>
           </div>
 
-          <ProgressBar percentage={progressPercentage} celebrateKey={balanceBump} className="shrink-0" />
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setQrScannerOpen(true)}
+              className="rounded-full bg-brand-yellow px-3 py-2 text-xs font-black text-brand-black shadow-[0_10px_22px_rgba(245,158,11,0.22)] transition active:scale-[0.98]"
+            >
+              <span className="sm:hidden">QR</span>
+              <span className="hidden sm:inline">Ler QR Code</span>
+            </button>
+            <ProgressBar percentage={progressPercentage} celebrateKey={balanceBump} className="shrink-0" />
+          </div>
         </div>
       </header>
 
       <SidebarDrawer open={isDrawerOpen} onClose={() => setDrawerOpen(false)} />
+      <QrCodeScannerModal open={isQrScannerOpen} onClose={() => setQrScannerOpen(false)} onScan={handleQrScan} />
     </>
   );
+}
+
+function getQrTargetPath(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  const uuidPattern = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
+  const directMachineMatch = trimmed.match(new RegExp(`^${uuidPattern}$`));
+  if (directMachineMatch) return `/qr/maquina/${trimmed}`;
+
+  try {
+    const url = new URL(trimmed, window.location.origin);
+    const path = url.pathname;
+    if (new RegExp(`^/qr/(maquina|loja)/${uuidPattern}$`).test(path)) {
+      return path;
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
 }
