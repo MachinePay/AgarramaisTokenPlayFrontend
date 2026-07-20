@@ -15,9 +15,11 @@ export function ProductCard({ product, busy, onBuyCredits, onBuyPoints, onBuyMon
   return (
     <div className="overflow-hidden rounded-3xl bg-white/95 shadow-[0_18px_42px_rgba(15,23,42,0.10)]">
       {product.imageUrl ? (
-        <img src={product.imageUrl} alt={product.name} className="h-40 w-full object-cover" />
+        <div className="flex h-56 w-full items-center justify-center bg-slate-50 p-3 sm:h-64">
+          <img src={product.imageUrl} alt={product.name} className="h-full w-full object-contain" />
+        </div>
       ) : (
-        <div className="flex h-32 w-full items-center justify-center bg-slate-100 text-4xl">🎁</div>
+        <div className="flex h-56 w-full items-center justify-center bg-slate-100 text-4xl sm:h-64">🎁</div>
       )}
 
       <div className="p-4">
