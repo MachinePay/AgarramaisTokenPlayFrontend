@@ -185,19 +185,19 @@ const defaultFilters: AdminFilters = {
 };
 
 const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
-  { id: "summary", label: "Resumo", icon: "RS" },
-  { id: "users", label: "Usuarios", icon: "US" },
-  { id: "transactions", label: "Transacoes", icon: "TX" },
-  { id: "gameplay", label: "Jogadas", icon: "JG" },
-  { id: "campaigns", label: "Campanhas", icon: "CP" },
-  { id: "packages", label: "Pacotes", icon: "PK" },
-  { id: "levels", label: "Niveis", icon: "NV" },
-  { id: "stores", label: "Lojas", icon: "LJ" },
-  { id: "machines", label: "Maquinas", icon: "MQ" },
-  { id: "products", label: "Produtos", icon: "PR" },
-  { id: "orders", label: "Entregas", icon: "EN" },
+  { id: "summary", label: "Resumo", icon: "📊" },
+  { id: "users", label: "Usuarios", icon: "👥" },
+  { id: "transactions", label: "Transacoes", icon: "💳" },
+  { id: "gameplay", label: "Jogadas", icon: "🕹️" },
+  { id: "campaigns", label: "Campanhas", icon: "🎯" },
+  { id: "packages", label: "Pacotes", icon: "🎁" },
+  { id: "levels", label: "Niveis", icon: "🏆" },
+  { id: "stores", label: "Lojas", icon: "🏬" },
+  { id: "machines", label: "Maquinas", icon: "🧸" },
+  { id: "products", label: "Produtos", icon: "🛍️" },
+  { id: "orders", label: "Entregas", icon: "📮" },
   { id: "privacy", label: "LGPD", icon: "LG" },
-  { id: "reports", label: "Relatorios", icon: "RP" },
+  { id: "reports", label: "Relatorios", icon: "📈" },
 ];
 
 function toNumber(value: string): number {
@@ -1634,7 +1634,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span aria-hidden className="rounded-2xl bg-brand-yellow px-3 py-2 text-sm font-black text-brand-black">AM</span>
+              <span aria-hidden className="text-3xl">🧸</span>
               <h1 className="text-3xl font-black text-white sm:text-4xl">Painel Admin</h1>
             </div>
             <p className="max-w-2xl text-sm font-medium text-white/70">
@@ -1670,7 +1670,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                 : "bg-white text-gray-500 hover:bg-amber-50 hover:text-brand-black"
             }`}
           >
-            <span aria-hidden className="inline-flex h-6 min-w-6 items-center justify-center rounded-lg bg-black/5 px-1 text-[10px] font-black">
+            <span aria-hidden className="text-base leading-none">
               {tab.icon}
             </span>
             {tab.label}
@@ -3351,28 +3351,28 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             <>
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <AdminStatCard
-                  icon="R$"
+                  icon="💰"
                   label="Faturamento"
                   value={formatMoney(operationsReport.summary.revenueBrl)}
                   sublabel={`${operationsReport.summary.approvedPurchases} compras aprovadas`}
                   tone="amber"
                 />
                 <AdminStatCard
-                  icon="F"
+                  icon="🎟️"
                   label="Fichas vendidas"
                   value={String(operationsReport.summary.creditsSold)}
                   sublabel={`${operationsReport.summary.activeBuyers} compradores`}
                   tone="green"
                 />
                 <AdminStatCard
-                  icon="J"
+                  icon="🕹️"
                   label="Jogadas"
                   value={String(operationsReport.summary.totalGames)}
                   sublabel={`${operationsReport.summary.creditsUsed} fichas usadas`}
                   tone="blue"
                 />
                 <AdminStatCard
-                  icon="TM"
+                  icon="🧾"
                   label="Ticket medio"
                   value={formatMoney(operationsReport.summary.averageTicketBrl)}
                   sublabel={`${operationsReport.summary.pendingPurchases} pendentes · ${operationsReport.summary.failedPurchases} falhas`}
