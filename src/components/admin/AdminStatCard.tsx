@@ -11,6 +11,16 @@ export function AdminStatCard({
   sublabel?: string;
   tone?: "amber" | "blue" | "green" | "red" | "purple" | "slate";
 }) {
+  const displayIcon = /[Ãð]/.test(icon)
+    ? label
+        .split(" ")
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase()
+    : icon;
+
   const tones = {
     amber: "from-amber-400 to-orange-500 text-white shadow-orange-200/70",
     blue: "from-blue-500 to-cyan-500 text-white shadow-blue-200/70",
@@ -29,7 +39,7 @@ export function AdminStatCard({
       <div className="relative flex items-start justify-between gap-3">
         <div className="text-xs font-extrabold uppercase leading-5 text-white/85">{label}</div>
         <span aria-hidden className="rounded-xl bg-white/18 px-2.5 py-2 text-xl leading-none">
-          {icon}
+          {displayIcon}
         </span>
       </div>
       <p className="relative mt-3 text-2xl font-black leading-tight text-white sm:text-3xl">{value}</p>

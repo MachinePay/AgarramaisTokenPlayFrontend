@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
+﻿import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { apiRequest, ApiError } from "@/lib/api";
 import type {
   AdminDashboardSummary,
@@ -185,19 +185,19 @@ const defaultFilters: AdminFilters = {
 };
 
 const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
-  { id: "summary", label: "Resumo", icon: "📊" },
-  { id: "users", label: "Usuarios", icon: "👥" },
-  { id: "transactions", label: "Transacoes", icon: "💳" },
-  { id: "gameplay", label: "Jogadas", icon: "🕹️" },
-  { id: "campaigns", label: "Campanhas", icon: "🎯" },
-  { id: "packages", label: "Pacotes", icon: "🎁" },
-  { id: "levels", label: "Niveis", icon: "🏆" },
-  { id: "stores", label: "Lojas", icon: "🏬" },
-  { id: "machines", label: "Maquinas", icon: "🧸" },
-  { id: "products", label: "Produtos", icon: "🛍️" },
-  { id: "orders", label: "Entregas", icon: "📮" },
+  { id: "summary", label: "Resumo", icon: "ðŸ“Š" },
+  { id: "users", label: "Usuarios", icon: "ðŸ‘¥" },
+  { id: "transactions", label: "Transacoes", icon: "ðŸ’³" },
+  { id: "gameplay", label: "Jogadas", icon: "ðŸ•¹ï¸" },
+  { id: "campaigns", label: "Campanhas", icon: "ðŸŽ¯" },
+  { id: "packages", label: "Pacotes", icon: "ðŸŽ" },
+  { id: "levels", label: "Niveis", icon: "ðŸ†" },
+  { id: "stores", label: "Lojas", icon: "ðŸ¬" },
+  { id: "machines", label: "Maquinas", icon: "ðŸ§¸" },
+  { id: "products", label: "Produtos", icon: "ðŸ›ï¸" },
+  { id: "orders", label: "Entregas", icon: "ðŸ“®" },
   { id: "privacy", label: "LGPD", icon: "LG" },
-  { id: "reports", label: "Relatorios", icon: "📈" },
+  { id: "reports", label: "Relatorios", icon: "ðŸ“ˆ" },
 ];
 
 function toNumber(value: string): number {
@@ -288,7 +288,7 @@ function AdminFilterBar({
       >
         <div className="relative">
           <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm">
-            🔎
+            ðŸ”Ž
           </span>
           <input
             className={`${filterInputClass} w-full pl-9`}
@@ -473,6 +473,10 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
   const [reportsLoading, setReportsLoading] = useState(false);
   const [reportDateFrom, setReportDateFrom] = useState(getDaysAgoInputValue(29));
   const [reportDateTo, setReportDateTo] = useState(todayInputValue);
+  const [reportStoreId, setReportStoreId] = useState("ALL");
+  const [reportMachineId, setReportMachineId] = useState("ALL");
+  const [reportTransactionStatus, setReportTransactionStatus] = useState("ALL");
+  const [reportGameplayStatus, setReportGameplayStatus] = useState("ALL");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -726,6 +730,14 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     [gameplayStoreId, machines],
   );
 
+  const reportStoreMachines = useMemo(
+    () =>
+      reportStoreId === "ALL"
+        ? machines
+        : machines.filter((machine) => machine.store.id === reportStoreId),
+    [machines, reportStoreId],
+  );
+
   const hasGameplayFilters = Boolean(
     filters.gameplay.search.trim() ||
       filters.gameplay.status !== "ALL" ||
@@ -850,6 +862,11 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     setGameplaySearched(false);
   }
 
+  function setReportQuickRange(days: number) {
+    setReportDateFrom(days <= 1 ? todayInputValue : getDaysAgoInputValue(days - 1));
+    setReportDateTo(todayInputValue);
+  }
+
   const loadOperationsReport = useCallback(async () => {
     setReportsLoading(true);
     setError(null);
@@ -857,6 +874,10 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       const params = new URLSearchParams();
       if (reportDateFrom) params.set("dateFrom", reportDateFrom);
       if (reportDateTo) params.set("dateTo", reportDateTo);
+      if (reportStoreId !== "ALL") params.set("storeId", reportStoreId);
+      if (reportMachineId !== "ALL") params.set("machineId", reportMachineId);
+      if (reportTransactionStatus !== "ALL") params.set("transactionStatus", reportTransactionStatus);
+      if (reportGameplayStatus !== "ALL") params.set("gameplayStatus", reportGameplayStatus);
       const report = await apiRequest<AdminOperationsReport>(`/admin/reports/operations?${params.toString()}`);
       setOperationsReport(report);
     } catch (err) {
@@ -864,7 +885,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     } finally {
       setReportsLoading(false);
     }
-  }, [reportDateFrom, reportDateTo]);
+  }, [reportDateFrom, reportDateTo, reportGameplayStatus, reportMachineId, reportStoreId, reportTransactionStatus]);
 
   useEffect(() => {
     if (activeTab === "reports") {
@@ -1613,17 +1634,17 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span aria-hidden className="text-3xl">🧸</span>
+              <span aria-hidden className="text-3xl">ðŸ§¸</span>
               <h1 className="text-3xl font-black text-white sm:text-4xl">Painel Admin</h1>
             </div>
             <p className="max-w-2xl text-sm font-medium text-white/70">
-              Gestão da operação digital Agarra Mais com pagamentos, máquinas e campanhas em tempo real.
+              GestÃ£o da operaÃ§Ã£o digital Agarra Mais com pagamentos, mÃ¡quinas e campanhas em tempo real.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 rounded-2xl bg-white/10 p-2 text-center ring-1 ring-white/15">
             <div className="rounded-xl bg-white/10 px-3 py-2">
               <p className="text-lg font-black">{summary?.totalUsers ?? 0}</p>
-              <p className="text-[11px] font-bold uppercase text-white/60">Usuários</p>
+              <p className="text-[11px] font-bold uppercase text-white/60">UsuÃ¡rios</p>
             </div>
             <div className="rounded-xl bg-white/10 px-3 py-2">
               <p className="text-lg font-black">{summary?.activeMachines ?? 0}</p>
@@ -1657,7 +1678,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
 
       {error && (
         <div className="flex items-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
-          <span aria-hidden>⚠️</span>
+          <span aria-hidden>âš ï¸</span>
           {error}
         </div>
       )}
@@ -1675,34 +1696,34 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       {!loading && activeTab === "summary" && summary && (
         <section className="flex flex-col gap-5">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <AdminStatCard icon="💰" label="Faturamento" value={`R$ ${summary.totalRevenueBrl}`} tone="amber" />
-            <AdminStatCard icon="🎯" label="Ticket médio" value={`R$ ${summary.averageTicketBrl}`} tone="purple" />
-            <AdminStatCard icon="👥" label="Usuários" value={String(summary.totalUsers)} tone="blue" />
+            <AdminStatCard icon="ðŸ’°" label="Faturamento" value={`R$ ${summary.totalRevenueBrl}`} tone="amber" />
+            <AdminStatCard icon="ðŸŽ¯" label="Ticket mÃ©dio" value={`R$ ${summary.averageTicketBrl}`} tone="purple" />
+            <AdminStatCard icon="ðŸ‘¥" label="UsuÃ¡rios" value={String(summary.totalUsers)} tone="blue" />
             <AdminStatCard
-              icon="🕹️"
-              label="Jogadas"
+              icon="J"
+                  label="Jogadas"
               value={`${summary.successfulGameplay}/${summary.totalGameplay}`}
               tone="green"
             />
             <AdminStatCard
-              icon="💳"
+              icon="ðŸ’³"
               label="Pagamentos"
               value={String(summary.approvedTransactions)}
               sublabel={`${summary.pendingTransactions} pendentes`}
               tone="slate"
             />
             <AdminStatCard
-              icon="🏬"
-              label="Operação"
+              icon="ðŸ¬"
+              label="OperaÃ§Ã£o"
               value={`${summary.activeMachines} online`}
-              sublabel={`${summary.unavailableMachines} indisponíveis`}
+              sublabel={`${summary.unavailableMachines} indisponÃ­veis`}
               tone="red"
             />
           </div>
 
           <AdminCard className="border-amber-100 bg-white/90">
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-black text-brand-black">Distribuição por nível</h2>
+              <h2 className="text-base font-black text-brand-black">DistribuiÃ§Ã£o por nÃ­vel</h2>
               <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-extrabold text-amber-700">Fidelidade</span>
             </div>
             <div className="mt-4 flex flex-col gap-4">
@@ -1711,7 +1732,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <div className="mb-1.5 flex justify-between text-xs font-medium text-gray-500">
                     <span>{entry.levelName}</span>
                     <span>
-                      {entry.userCount} usuários · {entry.percentage}%
+                      {entry.userCount} usuÃ¡rios Â· {entry.percentage}%
                     </span>
                   </div>
                   <div className="h-3 overflow-hidden rounded-full bg-slate-100">
@@ -1729,7 +1750,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
 
       {!loading && activeTab === "users" && (
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          <AdminFormSection title="Criar usuário" onSubmit={submitUser} className="sm:col-span-2 xl:col-span-3">
+          <AdminFormSection title="Criar usuÃ¡rio" onSubmit={submitUser} className="sm:col-span-2 xl:col-span-3">
             <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
               <input
                 className={inputClass}
@@ -1787,7 +1808,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               </select>
             </div>
             <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
-              Criar usuário
+              Criar usuÃ¡rio
             </AdminButton>
           </AdminFormSection>
 
@@ -1811,7 +1832,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             />
           </div>
           {users.length === 0 && (
-            <AdminEmptyState icon="👥" message="Nenhum usuário encontrado." />
+            <AdminEmptyState icon="ðŸ‘¥" message="Nenhum usuÃ¡rio encontrado." />
           )}
 
           {filteredUsers.map((user) => (
@@ -1821,7 +1842,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <p className="truncate font-bold text-brand-black">{user.name}</p>
                   <p className="truncate text-sm text-gray-500">{user.email}</p>
                   <p className="text-sm text-gray-500">
-                    Saldo {user.creditBalance} fichas · Compradas {user.totalCreditsPurchased} · {user.pointsBalance} pontos
+                    Saldo {user.creditBalance} fichas Â· Compradas {user.totalCreditsPurchased} Â· {user.pointsBalance} pontos
                   </p>
                   <p className="text-xs text-gray-500">CPF {maskCpf(user.cpf)}</p>
                   <p className="text-xs text-gray-500">Telefone {maskPhone(user.phone)}</p>
@@ -1924,7 +1945,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             />
           </div>
           {transactions.length === 0 && (
-            <AdminEmptyState icon="💳" message="Nenhuma transação encontrada." />
+            <AdminEmptyState icon="ðŸ’³" message="Nenhuma transaÃ§Ã£o encontrada." />
           )}
 
           {filteredTransactions.map((transaction) => (
@@ -1934,8 +1955,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <p className="truncate font-bold text-brand-black">{transaction.user.name}</p>
                   <p className="truncate text-sm text-gray-500">{transaction.user.email}</p>
                   <p className="mt-1 text-sm text-gray-500">
-                    {transaction.package?.name ?? "Pacote removido"} · R${" "}
-                    {Number(transaction.amountBrl).toFixed(2)} · {transaction.creditsAwarded} fichas
+                    {transaction.package?.name ?? "Pacote removido"} Â· R${" "}
+                    {Number(transaction.amountBrl).toFixed(2)} Â· {transaction.creditsAwarded} fichas
                   </p>
                   <p className="text-xs text-gray-500">{formatDate(transaction.createdAt)}</p>
                 </div>
@@ -1968,7 +1989,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[1.5fr_150px_150px_150px]">
               <div className="relative md:col-span-2 xl:col-span-1">
                 <span aria-hidden className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm">
-                  🔎
+                  ðŸ”Ž
                 </span>
                 <input
                   className={`${filterInputClass} w-full pl-9`}
@@ -2078,11 +2099,11 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             </p>
           </div>
           {!gameplaySearched && !gameplayLoading && (
-            <AdminEmptyState icon="🕹️" message="Use os filtros acima para buscar jogadas." />
+            <AdminEmptyState icon="ðŸ•¹ï¸" message="Use os filtros acima para buscar jogadas." />
           )}
 
           {gameplaySearched && gameplayLogs.length === 0 && (
-            <AdminEmptyState icon="🕹️" message="Nenhuma jogada encontrada para os filtros informados." />
+            <AdminEmptyState icon="ðŸ•¹ï¸" message="Nenhuma jogada encontrada para os filtros informados." />
           )}
 
           {filteredGameplayLogs.map((log) => (
@@ -2091,13 +2112,13 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                 <div className="min-w-0">
                   <p className="truncate font-bold text-brand-black">{log.machine.name}</p>
                   <p className="truncate text-sm text-gray-500">
-                    {log.machine.store.name} · {log.machine.telemetryId}
+                    {log.machine.store.name} Â· {log.machine.telemetryId}
                   </p>
                   <p className="truncate text-sm text-gray-500">
-                    {log.user.name} · {log.user.email}
+                    {log.user.name} Â· {log.user.email}
                   </p>
                   <p className="mt-1 text-sm text-gray-500">
-                    {log.creditsDebited} fichas · {log.pulsesSent} pulsos
+                    {log.creditsDebited} fichas Â· {log.pulsesSent} pulsos
                   </p>
                   <p className="text-xs text-gray-500">{formatDate(log.createdAt)}</p>
                 </div>
@@ -2136,12 +2157,12 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             </div>
             <input
               className={inputClass}
-              placeholder="Observações"
+              placeholder="ObservaÃ§Ãµes"
               value={campaignForm.notes}
               onChange={(event) => setCampaignForm({ ...campaignForm, notes: event.target.value })}
             />
             <div className="rounded-2xl bg-amber-50 p-3">
-              <p className="mb-2 text-sm font-black text-brand-black">Promoção de pacote</p>
+              <p className="mb-2 text-sm font-black text-brand-black">PromoÃ§Ã£o de pacote</p>
               <div className="grid gap-2 lg:grid-cols-4">
                 <select
                   className={inputClass}
@@ -2172,21 +2193,21 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                 <input
                   className={inputClass}
                   inputMode="numeric"
-                  placeholder="Bônus"
+                  placeholder="BÃ´nus"
                   value={campaignForm.packageBonusCredits}
                   onChange={(event) => setCampaignForm({ ...campaignForm, packageBonusCredits: event.target.value })}
                 />
               </div>
             </div>
             <div className="rounded-2xl bg-orange-50 p-3">
-              <p className="mb-2 text-sm font-black text-brand-black">Promoção de máquina</p>
+              <p className="mb-2 text-sm font-black text-brand-black">PromoÃ§Ã£o de mÃ¡quina</p>
               <div className="grid gap-2 lg:grid-cols-3">
                 <select
                   className={inputClass}
                   value={campaignForm.machineId}
                   onChange={(event) => setCampaignForm({ ...campaignForm, machineId: event.target.value })}
                 >
-                  <option value="">Sem máquina promocional</option>
+                  <option value="">Sem mÃ¡quina promocional</option>
                   {machines.map((machine) => (
                     <option key={machine.id} value={machine.id}>
                       {machine.name}
@@ -2219,7 +2240,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             status={filters.campaigns.status}
             total={campaigns.length}
             filtered={filteredCampaigns.length}
-            searchPlaceholder="Buscar por campanha, observação, pacote ou máquina"
+            searchPlaceholder="Buscar por campanha, observaÃ§Ã£o, pacote ou mÃ¡quina"
             statusOptions={[
               { value: "ALL", label: "Todas" },
               { value: "ACTIVE", label: "Ativas" },
@@ -2233,7 +2254,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             onClear={() => clearFilter("campaigns")}
           />
 
-          {campaigns.length === 0 && <AdminEmptyState icon="🎯" message="Nenhuma campanha cadastrada." />}
+          {campaigns.length === 0 && <AdminEmptyState icon="ðŸŽ¯" message="Nenhuma campanha cadastrada." />}
 
           {filteredCampaigns.map((campaign) => (
             <AdminCard key={campaign.id}>
@@ -2241,7 +2262,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                 <div>
                   <p className="font-bold text-brand-black">{campaign.name}</p>
                   <p className="text-xs text-gray-500">
-                    {formatDate(campaign.startsAt)} até {formatDate(campaign.endsAt)}
+                    {formatDate(campaign.startsAt)} atÃ© {formatDate(campaign.endsAt)}
                   </p>
                   {campaign.notes && <p className="mt-1 text-sm text-gray-500">{campaign.notes}</p>}
                 </div>
@@ -2290,7 +2311,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                     name="bonusCredits"
                     className={inputClass}
                     inputMode="numeric"
-                    placeholder="Bônus"
+                    placeholder="BÃ´nus"
                     defaultValue="0"
                   />
                 </div>
@@ -2310,7 +2331,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               </AdminFormSection>
 
               <AdminFormSection
-                title="Override de máquina"
+                title="Override de mÃ¡quina"
                 onSubmit={(event) => submitCampaignMachineOverride(event, campaign)}
                 className="mt-3 bg-white ring-1 ring-gray-100"
               >
@@ -2332,13 +2353,13 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   />
                   <select name="status" className={inputClass} defaultValue="">
                     <option value="">Status atual</option>
-                    <option value="AVAILABLE">Disponível</option>
+                    <option value="AVAILABLE">DisponÃ­vel</option>
                     <option value="BUSY">Ocupada</option>
-                    <option value="MAINTENANCE">Manutenção</option>
+                    <option value="MAINTENANCE">ManutenÃ§Ã£o</option>
                   </select>
                 </div>
                 <AdminButton type="submit" variant="primary" disabled={saving}>
-                  Salvar máquina da campanha
+                  Salvar mÃ¡quina da campanha
                 </AdminButton>
               </AdminFormSection>
 
@@ -2346,13 +2367,13 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                 <div className="mt-3 flex flex-col gap-2 text-xs text-gray-500">
                   {campaign.packageOverrides.map((override) => (
                     <p key={override.id}>
-                      Pacote: {override.package.name} · R$ {Number(override.amountBrl).toFixed(2)} ·{" "}
+                      Pacote: {override.package.name} Â· R$ {Number(override.amountBrl).toFixed(2)} Â·{" "}
                       {override.baseCredits + override.bonusCredits} fichas
                     </p>
                   ))}
                   {campaign.machineOverrides.map((override) => (
                     <p key={override.id}>
-                      Máquina: {override.machine.name} · {override.costPerGame} ficha/jogada ·{" "}
+                      MÃ¡quina: {override.machine.name} Â· {override.costPerGame} ficha/jogada Â·{" "}
                       {override.pulsesPerCredit} pulsos/ficha
                     </p>
                   ))}
@@ -2405,9 +2426,9 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             </div>
             <div className="rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
               R$ {Number(settings?.tokenBundleAmountBrl ?? tokenBundleAmountBrl.replace(",", ".")).toFixed(2)} ={" "}
-              {settings?.tokenBundleCredits ?? Number(tokenBundleCredits || 0)} ficha(s) · 1 ficha = R${" "}
+              {settings?.tokenBundleCredits ?? Number(tokenBundleCredits || 0)} ficha(s) Â· 1 ficha = R${" "}
               {Number(settings?.tokenValueBrl ?? (toNumber(tokenBundleAmountBrl) / Math.max(1, toNumber(tokenBundleCredits)))).toFixed(2)}
-              {" · "}
+              {" Â· "}
               cada ficha avulsa comprada gera {settings?.pointsPerCredit ?? Number(pointsPerCredit || 0)} ponto(s)
             </div>
           </AdminFormSection>
@@ -2440,7 +2461,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               <input
                 className={inputClass}
                 inputMode="numeric"
-                placeholder="Bônus"
+                placeholder="BÃ´nus"
                 value={packageForm.bonusCredits}
                 onChange={(event) => setPackageForm({ ...packageForm, bonusCredits: event.target.value })}
               />
@@ -2481,7 +2502,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             status={filters.packages.status}
             total={packages.length}
             filtered={filteredPackages.length}
-            searchPlaceholder="Buscar por nome, valor, fichas ou bônus"
+            searchPlaceholder="Buscar por nome, valor, fichas ou bÃ´nus"
             statusOptions={[
               { value: "ALL", label: "Todos" },
               { value: "ACTIVE", label: "Ativos" },
@@ -2494,7 +2515,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           />
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {packages.length === 0 && <AdminEmptyState icon="🎁" message="Nenhum pacote cadastrado." />}
+            {packages.length === 0 && <AdminEmptyState icon="ðŸŽ" message="Nenhum pacote cadastrado." />}
 
             {filteredPackages.map((creditPackage) => (
               <AdminCard key={creditPackage.id}>
@@ -2502,8 +2523,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <div>
                     <p className="font-bold text-brand-black">{creditPackage.name}</p>
                     <p className="text-sm text-gray-500">
-                      R$ {Number(creditPackage.amountBrl).toFixed(2)} ·{" "}
-                      {creditPackage.baseCredits + creditPackage.bonusCredits} fichas · +{creditPackage.pointsAwarded} pontos
+                      R$ {Number(creditPackage.amountBrl).toFixed(2)} Â·{" "}
+                      {creditPackage.baseCredits + creditPackage.bonusCredits} fichas Â· +{creditPackage.pointsAwarded} pontos
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2">
@@ -2562,11 +2583,11 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
 
       {!loading && activeTab === "levels" && (
         <section className="flex flex-col gap-4">
-          <AdminFormSection title="Criar nível de fidelidade" onSubmit={submitLevel}>
+          <AdminFormSection title="Criar nÃ­vel de fidelidade" onSubmit={submitLevel}>
             <input
               className={inputClass}
               required
-              placeholder="Nome do nível"
+              placeholder="Nome do nÃ­vel"
               value={levelForm.levelName}
               onChange={(event) => setLevelForm({ ...levelForm, levelName: event.target.value })}
             />
@@ -2582,13 +2603,13 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               <input
                 className={inputClass}
                 inputMode="numeric"
-                placeholder="Bônus"
+                placeholder="BÃ´nus"
                 value={levelForm.bonusCreditsReward}
                 onChange={(event) => setLevelForm({ ...levelForm, bonusCreditsReward: event.target.value })}
               />
             </div>
             <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-extrabold uppercase text-gray-500">Pontos ganhos ao subir de nível</span>
+              <span className="text-xs font-extrabold uppercase text-gray-500">Pontos ganhos ao subir de nÃ­vel</span>
               <input
                 className={inputClass}
                 inputMode="numeric"
@@ -2606,7 +2627,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               <option value="DRAFT">Rascunho</option>
             </select>
             <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
-              Criar nível
+              Criar nÃ­vel
             </AdminButton>
           </AdminFormSection>
 
@@ -2615,7 +2636,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             status={filters.levels.status}
             total={levels.length}
             filtered={filteredLevels.length}
-            searchPlaceholder="Buscar por nível, fichas requeridas ou bônus"
+            searchPlaceholder="Buscar por nÃ­vel, fichas requeridas ou bÃ´nus"
             statusOptions={[
               { value: "ALL", label: "Todos" },
               { value: "ACTIVE", label: "Ativos" },
@@ -2627,7 +2648,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           />
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {levels.length === 0 && <AdminEmptyState icon="🏆" message="Nenhum nível cadastrado." />}
+            {levels.length === 0 && <AdminEmptyState icon="ðŸ†" message="Nenhum nÃ­vel cadastrado." />}
 
             {filteredLevels.map((level) => (
               <AdminCard key={level.id}>
@@ -2635,7 +2656,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <div>
                     <p className="font-bold text-brand-black">{level.levelName}</p>
                     <p className="text-sm text-gray-500">
-                      {level.requiredCredits} fichas · +{level.bonusCreditsReward} bônus · +{level.pointsAwarded} pontos
+                      {level.requiredCredits} fichas Â· +{level.bonusCreditsReward} bÃ´nus Â· +{level.pointsAwarded} pontos
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2">
@@ -2668,7 +2689,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                     <option value="DRAFT">Rascunho</option>
                   </select>
                   <AdminButton type="submit" variant="primary" disabled={saving}>
-                    Salvar nível
+                    Salvar nÃ­vel
                   </AdminButton>
                 </form>
               </AdminCard>
@@ -2690,7 +2711,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             <input
               className={inputClass}
               required
-              placeholder="Localização"
+              placeholder="LocalizaÃ§Ã£o"
               value={storeForm.location}
               onChange={(event) => setStoreForm({ ...storeForm, location: event.target.value })}
             />
@@ -2704,7 +2725,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             status={filters.stores.status}
             total={stores.length}
             filtered={filteredStores.length}
-            searchPlaceholder="Buscar por loja, localização ou status"
+            searchPlaceholder="Buscar por loja, localizaÃ§Ã£o ou status"
             statusOptions={[
               { value: "ALL", label: "Todas" },
               { value: "ACTIVE", label: "Ativas" },
@@ -2716,7 +2737,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           />
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {stores.length === 0 && <AdminEmptyState icon="🏬" message="Nenhuma loja cadastrada." />}
+            {stores.length === 0 && <AdminEmptyState icon="ðŸ¬" message="Nenhuma loja cadastrada." />}
 
             {filteredStores.map((store) => (
               <AdminCard key={store.id}>
@@ -2750,7 +2771,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       {!loading && activeTab === "machines" && (
         <section className="flex flex-col gap-4">
 
-<AdminFormSection title="Criar máquina" onSubmit={submitMachine}>
+<AdminFormSection title="Criar mÃ¡quina" onSubmit={submitMachine}>
             <select
               className={inputClass}
               required
@@ -2766,7 +2787,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             <input
               className={inputClass}
               required
-              placeholder="Nome da máquina"
+              placeholder="Nome da mÃ¡quina"
               value={machineForm.name}
               onChange={(event) => setMachineForm({ ...machineForm, name: event.target.value })}
             />
@@ -2807,7 +2828,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               disabled={saving || activeStores.length === 0}
               className="w-full py-3"
             >
-              Criar máquina
+              Criar mÃ¡quina
             </AdminButton>
           </AdminFormSection>
 
@@ -2816,13 +2837,13 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             status={filters.machines.status}
             total={machines.length}
             filtered={filteredMachines.length}
-            searchPlaceholder="Buscar por máquina, loja, localização ou telemetryId"
+            searchPlaceholder="Buscar por mÃ¡quina, loja, localizaÃ§Ã£o ou telemetryId"
             statusLabel="Status ou loja"
             statusOptions={[
               { value: "ALL", label: "Todas" },
-              { value: "AVAILABLE", label: "Disponíveis" },
+              { value: "AVAILABLE", label: "DisponÃ­veis" },
               { value: "BUSY", label: "Ocupadas" },
-              { value: "MAINTENANCE", label: "Manutenção" },
+              { value: "MAINTENANCE", label: "ManutenÃ§Ã£o" },
               ...stores.map((store) => ({ value: store.id, label: `Loja: ${store.name}` })),
             ]}
             onSearchChange={(value) => updateFilter("machines", "search", value)}
@@ -2831,19 +2852,19 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           />
 
           <div className="grid gap-3 xl:grid-cols-2">
-            {machines.length === 0 && <AdminEmptyState icon="🧸" message="Nenhuma máquina cadastrada." />}
+            {machines.length === 0 && <AdminEmptyState icon="ðŸ§¸" message="Nenhuma mÃ¡quina cadastrada." />}
 
             {filteredMachines.map((machine) => (
               <AdminCard key={machine.id}>
                 <p className="font-bold text-brand-black">{machine.name}</p>
                 <p className="text-sm text-gray-500">
-                  {machine.store.name} · {machine.telemetryId}
+                  {machine.store.name} Â· {machine.telemetryId}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {machine.costPerGame} ficha/jogada · {machine.pulsesPerCredit} pulsos/ficha
+                  {machine.costPerGame} ficha/jogada Â· {machine.pulsesPerCredit} pulsos/ficha
                 </p>
                 <div className="mt-2 rounded-lg bg-surface-soft p-2 text-xs text-gray-500">
-                  <p className="break-all">QR máquina: {getQrUrl(`/qr/maquina/${machine.id}`)}</p>
+                  <p className="break-all">QR mÃ¡quina: {getQrUrl(`/qr/maquina/${machine.id}`)}</p>
                   <p className="break-all">QR loja: {getQrUrl(`/qr/loja/${machine.store.id}`)}</p>
                 </div>
                 <AdminButton
@@ -2861,9 +2882,9 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                     <input name="costPerGame" className={inputClass} inputMode="numeric" defaultValue={machine.costPerGame} />
                     <input name="pulsesPerCredit" className={inputClass} inputMode="numeric" defaultValue={machine.pulsesPerCredit} />
                     <select name="status" className={inputClass} defaultValue={machine.status}>
-                      <option value="AVAILABLE">Disponível</option>
+                      <option value="AVAILABLE">DisponÃ­vel</option>
                       <option value="BUSY">Ocupada</option>
-                      <option value="MAINTENANCE">Manutenção</option>
+                      <option value="MAINTENANCE">ManutenÃ§Ã£o</option>
                     </select>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -2977,7 +2998,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           />
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {products.length === 0 && <AdminEmptyState icon="🛍️" message="Nenhum produto cadastrado." />}
+            {products.length === 0 && <AdminEmptyState icon="ðŸ›ï¸" message="Nenhum produto cadastrado." />}
 
             {filteredProducts.map((product) => (
               <AdminCard key={product.id}>
@@ -2992,7 +3013,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         product.cardPriceBrl != null ? `Cartao R$ ${Number(product.cardPriceBrl).toFixed(2)}` : null,
                       ]
                         .filter(Boolean)
-                        .join(" · ")}
+                        .join(" Â· ")}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col gap-2">
@@ -3076,7 +3097,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           />
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {orders.length === 0 && <AdminEmptyState icon="📮" message="Nenhum pedido de produto ainda." />}
+            {orders.length === 0 && <AdminEmptyState icon="ðŸ“®" message="Nenhum pedido de produto ainda." />}
 
             {filteredOrders.map((order) => (
               <AdminCard key={order.id}>
@@ -3084,7 +3105,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <div className="min-w-0">
                     <p className="truncate font-bold text-brand-black">{order.productName}</p>
                     <p className="truncate text-sm text-gray-500">
-                      {order.user.name} · {order.user.email}
+                      {order.user.name} Â· {order.user.email}
                     </p>
                     <p className="text-sm text-gray-500">
                       {order.paymentMethod === "CREDITS" && `${order.creditsSpent} fichas`}
@@ -3169,7 +3190,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                     <div className="min-w-0">
                       <p className="font-bold text-brand-black">{privacyRequestTypeLabel[request.type]}</p>
                       <p className="truncate text-sm text-gray-500">
-                        {request.user.name} · {request.user.email}
+                        {request.user.name} Â· {request.user.email}
                       </p>
                       <p className="mt-2 text-sm font-semibold text-gray-600">{request.message}</p>
                       <p className="mt-2 text-xs font-semibold text-gray-400">{formatDate(request.createdAt)}</p>
@@ -3223,7 +3244,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   Faturamento, fichas, jogadas, rankings de clientes, pacotes, lojas e maquinas.
                 </p>
               </div>
-              <div className="grid gap-2 sm:grid-cols-[150px_150px_auto]">
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-[130px_130px_170px_170px_160px_160px_auto]">
                 <input
                   className={filterInputClass}
                   type="date"
@@ -3236,8 +3257,77 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   value={reportDateTo}
                   onChange={(event) => setReportDateTo(event.target.value)}
                 />
+                <select
+                  className={filterInputClass}
+                  value={reportStoreId}
+                  onChange={(event) => {
+                    setReportStoreId(event.target.value);
+                    setReportMachineId("ALL");
+                  }}
+                >
+                  <option value="ALL">Todas as lojas</option>
+                  {stores.map((store) => (
+                    <option key={store.id} value={store.id}>
+                      {store.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className={filterInputClass}
+                  value={reportMachineId}
+                  onChange={(event) => setReportMachineId(event.target.value)}
+                >
+                  <option value="ALL">Todas as maquinas</option>
+                  {reportStoreMachines.map((machine) => (
+                    <option key={machine.id} value={machine.id}>
+                      {machine.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className={filterInputClass}
+                  value={reportTransactionStatus}
+                  onChange={(event) => setReportTransactionStatus(event.target.value)}
+                >
+                  <option value="ALL">Compras: todas</option>
+                  <option value="APPROVED">Compras aprovadas</option>
+                  <option value="PENDING">Compras pendentes</option>
+                  <option value="FAILED">Compras falhas</option>
+                </select>
+                <select
+                  className={filterInputClass}
+                  value={reportGameplayStatus}
+                  onChange={(event) => setReportGameplayStatus(event.target.value)}
+                >
+                  <option value="ALL">Jogadas: todas</option>
+                  <option value="SUCCESS">Jogadas sucesso</option>
+                  <option value="FAILED">Jogadas falhas</option>
+                </select>
                 <AdminButton type="button" variant="primary" disabled={reportsLoading} onClick={loadOperationsReport}>
                   {reportsLoading ? "Atualizando..." : "Atualizar"}
+                </AdminButton>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <AdminButton type="button" variant="secondary" onClick={() => setReportQuickRange(1)}>
+                  Hoje
+                </AdminButton>
+                <AdminButton type="button" variant="secondary" onClick={() => setReportQuickRange(7)}>
+                  7 dias
+                </AdminButton>
+                <AdminButton type="button" variant="secondary" onClick={() => setReportQuickRange(30)}>
+                  30 dias
+                </AdminButton>
+                <AdminButton
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setReportStoreId("ALL");
+                    setReportMachineId("ALL");
+                    setReportTransactionStatus("ALL");
+                    setReportGameplayStatus("ALL");
+                  }}
+                >
+                  Limpar filtros
                 </AdminButton>
               </div>
             </div>
@@ -3253,28 +3343,28 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             <>
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <AdminStatCard
-                  icon="ðŸ’°"
+                  icon="R$"
                   label="Faturamento"
                   value={formatMoney(operationsReport.summary.revenueBrl)}
                   sublabel={`${operationsReport.summary.approvedPurchases} compras aprovadas`}
                   tone="amber"
                 />
                 <AdminStatCard
-                  icon="ðŸŽŸï¸"
+                  icon="F"
                   label="Fichas vendidas"
                   value={String(operationsReport.summary.creditsSold)}
                   sublabel={`${operationsReport.summary.activeBuyers} compradores`}
                   tone="green"
                 />
                 <AdminStatCard
-                  icon="ðŸ•¹ï¸"
+                  icon="J"
                   label="Jogadas"
                   value={String(operationsReport.summary.totalGames)}
                   sublabel={`${operationsReport.summary.creditsUsed} fichas usadas`}
                   tone="blue"
                 />
                 <AdminStatCard
-                  icon="ðŸ§¾"
+                  icon="TM"
                   label="Ticket medio"
                   value={formatMoney(operationsReport.summary.averageTicketBrl)}
                   sublabel={`${operationsReport.summary.pendingPurchases} pendentes · ${operationsReport.summary.failedPurchases} falhas`}
@@ -3359,3 +3449,6 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     </div>
   );
 }
+
+
+
