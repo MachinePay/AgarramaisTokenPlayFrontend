@@ -17,6 +17,7 @@ import { PrivacidadePage } from "@/pages/PrivacidadePage";
 import { TermosPage } from "@/pages/TermosPage";
 import { MinhaPrivacidadePage } from "@/pages/MinhaPrivacidadePage";
 import { AceitePrivacidadePage } from "@/pages/AceitePrivacidadePage";
+import { MeuCadastroPage } from "@/pages/MeuCadastroPage";
 
 function App() {
   return (
@@ -89,6 +90,14 @@ function App() {
         element={
           <RequireAuth>
             <MinhaPrivacidadePage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/meu-cadastro"
+        element={
+          <RequireAuth>
+            <MeuCadastroPage />
           </RequireAuth>
         }
       />

@@ -1,13 +1,12 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuthStore } from "@/store/useAuthStore";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { SidebarDrawer } from "@/components/layout/SidebarDrawer";
 
 /**
  * Navbar fixa no topo, presente em todas as telas autenticadas do WebApp.
- * Le o resumo do usuario (nome, saldo, nivel, progresso) do estado global -
- * quem popula esse estado e useAuthStore.fetchNavbarSummary(), chamado no
- * login e sempre que o saldo muda (compra aprovada / jogada realizada).
+ * Le o resumo do usuario (nome, saldo, nivel, progresso) do estado global.
  */
 export function TopNavbar({ wide = false }: { wide?: boolean }) {
   const [isDrawerOpen, setDrawerOpen] = useState(false);
@@ -28,40 +27,38 @@ export function TopNavbar({ wide = false }: { wide?: boolean }) {
             wide ? "max-w-6xl px-4 sm:px-8" : "max-w-xl px-4 sm:max-w-2xl sm:px-6 lg:max-w-5xl lg:px-8"
           }`}
         >
-          {/* Esquerda: menu hamburguer */}
-          <button
-            type="button"
-            aria-label="Abrir menu"
-            onClick={() => setDrawerOpen(true)}
-            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-2xl leading-none transition-transform duration-150 active:scale-90 ${
-              wide ? "bg-white/10 text-white hover:bg-white/15" : "bg-white/10 text-white hover:bg-white/15"
-            }`}
-          >
-            ☰
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              aria-label="Abrir menu"
+              onClick={() => setDrawerOpen(true)}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-2xl leading-none text-white transition-transform duration-150 hover:bg-white/15 active:scale-90"
+            >
+              ☰
+            </button>
+            <Link
+              to="/meu-cadastro"
+              className="inline-flex rounded-full bg-white/10 px-3 py-2 text-xs font-black text-white ring-1 ring-white/15 transition hover:bg-white/15"
+            >
+              <span className="sm:hidden">ID</span>
+              <span className="hidden sm:inline">Meu cadastro</span>
+            </Link>
+          </div>
 
-          {/* Centro: nome / saldo / nivel */}
           <div className="flex min-w-0 flex-1 flex-col items-center px-2 text-center">
-            <span className={`w-full truncate text-sm font-medium ${wide ? "text-white/80" : "text-white/80"}`}>
-              {name}
-            </span>
+            <span className="w-full truncate text-sm font-medium text-white/80">{name}</span>
             <span
               key={balanceBump}
-              className={`rounded-full px-2 text-xl font-bold leading-tight animate-flash-yellow ${
-                wide ? "text-brand-yellow" : "text-brand-yellow"
-              }`}
+              className="animate-flash-yellow rounded-full px-2 text-xl font-bold leading-tight text-brand-yellow"
             >
               {creditBalance} Fichas
             </span>
-            <span className={`truncate text-xs italic ${wide ? "text-white/55" : "text-white/55"}`}>
-              Nível {levelName}
-            </span>
+            <span className="truncate text-xs italic text-white/55">Nível {levelName}</span>
             <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-xs font-bold text-white/85">
               ★ {pointsBalance} pts
             </span>
           </div>
 
-          {/* Direita: progresso de fidelidade */}
           <ProgressBar percentage={progressPercentage} celebrateKey={balanceBump} className="shrink-0" />
         </div>
       </header>

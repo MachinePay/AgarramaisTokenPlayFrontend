@@ -7,6 +7,21 @@ export type UserNavbarSummary = {
   progressPercentage: number;
 };
 
+export type UserProfile = {
+  id: string;
+  name: string;
+  email: string;
+  cpf: string;
+  phone: string | null;
+  addressZipCode: string | null;
+  addressStreet: string | null;
+  addressNumber: string | null;
+  addressComplement: string | null;
+  addressNeighborhood: string | null;
+  addressCity: string | null;
+  addressState: string | null;
+};
+
 export type Store = {
   id: string;
   name: string;
