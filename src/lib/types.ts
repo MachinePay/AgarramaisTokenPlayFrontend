@@ -255,6 +255,7 @@ export type AdminSettings = {
   santanderClientSecretSet: boolean;
   santanderCertificatePemSet: boolean;
   santanderPrivateKeyPemSet: boolean;
+  santanderPfxSet: boolean;
   santanderPixKeySet: boolean;
 };
 

@@ -253,6 +253,7 @@ async function loadAdminSettingsWithFallback(): Promise<AdminSettings> {
         santanderClientSecretSet: false,
         santanderCertificatePemSet: false,
         santanderPrivateKeyPemSet: false,
+        santanderPfxSet: false,
         santanderPixKeySet: false,
       };
     }
@@ -512,6 +513,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
   const [santanderClientSecret, setSantanderClientSecret] = useState("");
   const [santanderCertificatePem, setSantanderCertificatePem] = useState("");
   const [santanderPrivateKeyPem, setSantanderPrivateKeyPem] = useState("");
+  const [santanderPfxBase64, setSantanderPfxBase64] = useState("");
+  const [santanderPfxPassphrase, setSantanderPfxPassphrase] = useState("");
   const [santanderPixKey, setSantanderPixKey] = useState("");
 
   const [userForm, setUserForm] = useState<UserForm>({
@@ -587,6 +590,17 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
   const readTextFile = async (file: File | undefined, onRead: (value: string) => void) => {
     if (!file) return;
     onRead(await file.text());
+  };
+
+  const readBinaryFileAsBase64 = async (file: File | undefined, onRead: (value: string) => void) => {
+    if (!file) return;
+    const buffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    bytes.forEach((byte) => {
+      binary += String.fromCharCode(byte);
+    });
+    onRead(window.btoa(binary));
   };
 
   const filteredUsers = useMemo(() => {
@@ -1130,6 +1144,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     const nextSantanderClientSecret = String(data.get("santanderClientSecret") || "");
     const nextSantanderCertificatePem = String(data.get("santanderCertificatePem") || "");
     const nextSantanderPrivateKeyPem = String(data.get("santanderPrivateKeyPem") || "");
+    const nextSantanderPfxBase64 = String(data.get("santanderPfxBase64") || santanderPfxBase64 || "");
+    const nextSantanderPfxPassphrase = String(data.get("santanderPfxPassphrase") || "");
     const nextSantanderPixKey = String(data.get("santanderPixKey") || "");
 
     try {
@@ -1143,6 +1159,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           santanderClientSecret: nextSantanderClientSecret || undefined,
           santanderCertificatePem: nextSantanderCertificatePem || undefined,
           santanderPrivateKeyPem: nextSantanderPrivateKeyPem || undefined,
+          santanderPfxBase64: nextSantanderPfxBase64 || undefined,
+          santanderPfxPassphrase: nextSantanderPfxPassphrase || undefined,
           santanderPixKey: nextSantanderPixKey || undefined,
         },
       });
@@ -1154,6 +1172,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       setSantanderClientSecret("");
       setSantanderCertificatePem("");
       setSantanderPrivateKeyPem("");
+      setSantanderPfxBase64("");
+      setSantanderPfxPassphrase("");
       setSantanderPixKey("");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o financeiro");
@@ -3528,6 +3548,29 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                     </label>
 
                     <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-extrabold uppercase text-gray-500">Certificado PFX/P12</span>
+                      <input
+                        className={inputClass}
+                        type="file"
+                        accept=".pfx,.p12"
+                        onChange={(event) => void readBinaryFileAsBase64(event.target.files?.[0], setSantanderPfxBase64)}
+                      />
+                      <input type="hidden" name="santanderPfxBase64" value={santanderPfxBase64} />
+                      <input
+                        className={inputClass}
+                        name="santanderPfxPassphrase"
+                        type="password"
+                        value={santanderPfxPassphrase}
+                        onChange={(event) => setSantanderPfxPassphrase(event.target.value)}
+                        placeholder="Senha do PFX/P12, se tiver"
+                        autoComplete="new-password"
+                      />
+                      <span className="text-xs font-semibold text-amber-800">
+                        Use essa opcao se o arquivo que voce recebeu for .pfx ou .p12. Ela evita o erro DECODER unsupported.
+                      </span>
+                    </label>
+
+                    <label className="flex flex-col gap-1.5">
                       <span className="text-xs font-extrabold uppercase text-gray-500">Certificado Santander PEM</span>
                       <input
                         className={inputClass}
@@ -3540,11 +3583,11 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         name="santanderCertificatePem"
                         value={santanderCertificatePem}
                         onChange={(event) => setSantanderCertificatePem(event.target.value)}
-                        required={!settings?.santanderCertificatePemSet}
+                        required={!settings?.santanderCertificatePemSet && !settings?.santanderPfxSet && !santanderPfxBase64}
                         placeholder={
                           settings?.santanderCertificatePemSet
                             ? "Certificado ja cadastrado - cole outro para trocar"
-                            : "Cole o certificado PEM usado/cadastrado no portal Santander"
+                            : "Cole somente se o certificado estiver em texto PEM"
                         }
                       />
                       <span className="text-xs font-semibold text-amber-800">
@@ -3601,6 +3644,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <p>Client ID: {settings?.santanderClientIdSet ? "Cadastrado" : "Nao cadastrado"}</p>
                   <p>Client Secret: {settings?.santanderClientSecretSet ? "Cadastrado" : "Nao cadastrado"}</p>
                   <p>Chave Pix: {settings?.santanderPixKeySet ? "Cadastrada" : "Nao cadastrada"}</p>
+                  {settings?.santanderPfxSet && <p>Certificado PFX/P12: Cadastrado</p>}
                   {settings?.santanderCertificatePemSet && <p>Certificado: Cadastrado</p>}
                   {settings?.santanderPrivateKeyPemSet && <p>Chave privada: Cadastrada</p>}
                 </div>

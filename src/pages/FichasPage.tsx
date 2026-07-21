@@ -38,6 +38,7 @@ export function FichasPage() {
           santanderClientSecretSet: false,
           santanderCertificatePemSet: false,
           santanderPrivateKeyPemSet: false,
+          santanderPfxSet: false,
           santanderPixKeySet: false,
         }),
       ),
