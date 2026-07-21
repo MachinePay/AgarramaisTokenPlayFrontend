@@ -3448,17 +3448,6 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   </select>
                 </label>
 
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-extrabold uppercase text-gray-500">URL base da API Santander</span>
-                  <input
-                    className={inputClass}
-                    type="url"
-                    value={santanderBaseUrl}
-                    onChange={(event) => setSantanderBaseUrl(event.target.value)}
-                    placeholder="https://trust-sandbox.api.santander.com.br"
-                  />
-                </label>
-
                 <div className="grid gap-3 md:grid-cols-2">
                   <label className="flex flex-col gap-1.5">
                     <span className="text-xs font-extrabold uppercase text-gray-500">Client ID</span>
@@ -3489,27 +3478,46 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                     onChange={(event) => setSantanderPixKey(event.target.value)}
                     placeholder={settings?.santanderPixKeySet ? "Ja cadastrada - preencha para trocar" : "CPF, CNPJ, email, telefone ou chave aleatoria"}
                   />
+                  <span className="text-xs font-semibold text-gray-500">
+                    Essa chave vem da conta Santander que vai receber o Pix, nao da tela de credenciais da API.
+                  </span>
                 </label>
 
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-extrabold uppercase text-gray-500">Certificado Santander PEM</span>
-                  <textarea
-                    className={`${inputClass} min-h-28 resize-y`}
-                    value={santanderCertificatePem}
-                    onChange={(event) => setSantanderCertificatePem(event.target.value)}
-                    placeholder={settings?.santanderCertificatePemSet ? "Certificado ja cadastrado - cole outro para trocar" : "Cole o certificado, se a API exigir"}
-                  />
-                </label>
+                <details className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
+                  <summary className="cursor-pointer text-sm font-black text-gray-600">Configuracoes avancadas opcionais</summary>
+                  <div className="mt-3 grid gap-3">
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-extrabold uppercase text-gray-500">URL base da API Santander</span>
+                      <input
+                        className={inputClass}
+                        type="url"
+                        value={santanderBaseUrl}
+                        onChange={(event) => setSantanderBaseUrl(event.target.value)}
+                        placeholder="https://trust-sandbox.api.santander.com.br"
+                      />
+                    </label>
 
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-xs font-extrabold uppercase text-gray-500">Chave privada PEM</span>
-                  <textarea
-                    className={`${inputClass} min-h-28 resize-y`}
-                    value={santanderPrivateKeyPem}
-                    onChange={(event) => setSantanderPrivateKeyPem(event.target.value)}
-                    placeholder={settings?.santanderPrivateKeyPemSet ? "Chave ja cadastrada - cole outra para trocar" : "Cole a chave privada, se a API exigir"}
-                  />
-                </label>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-extrabold uppercase text-gray-500">Certificado Santander PEM</span>
+                      <textarea
+                        className={`${inputClass} min-h-28 resize-y`}
+                        value={santanderCertificatePem}
+                        onChange={(event) => setSantanderCertificatePem(event.target.value)}
+                        placeholder={settings?.santanderCertificatePemSet ? "Certificado ja cadastrado - cole outro para trocar" : "Cole apenas se o Santander exigir mTLS"}
+                      />
+                    </label>
+
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-extrabold uppercase text-gray-500">Chave privada PEM</span>
+                      <textarea
+                        className={`${inputClass} min-h-28 resize-y`}
+                        value={santanderPrivateKeyPem}
+                        onChange={(event) => setSantanderPrivateKeyPem(event.target.value)}
+                        placeholder={settings?.santanderPrivateKeyPemSet ? "Chave ja cadastrada - cole outra para trocar" : "Cole apenas se o Santander exigir mTLS"}
+                      />
+                    </label>
+                  </div>
+                </details>
               </>
             )}
 
@@ -3534,8 +3542,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <p>Client ID: {settings?.santanderClientIdSet ? "Cadastrado" : "Nao cadastrado"}</p>
                   <p>Client Secret: {settings?.santanderClientSecretSet ? "Cadastrado" : "Nao cadastrado"}</p>
                   <p>Chave Pix: {settings?.santanderPixKeySet ? "Cadastrada" : "Nao cadastrada"}</p>
-                  <p>Certificado: {settings?.santanderCertificatePemSet ? "Cadastrado" : "Nao cadastrado"}</p>
-                  <p>Chave privada: {settings?.santanderPrivateKeyPemSet ? "Cadastrada" : "Nao cadastrada"}</p>
+                  {settings?.santanderCertificatePemSet && <p>Certificado: Cadastrado</p>}
+                  {settings?.santanderPrivateKeyPemSet && <p>Chave privada: Cadastrada</p>}
                 </div>
                 <div className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
                   Santander sera usado para Pix. Cartao continua pelo Mercado Pago.
