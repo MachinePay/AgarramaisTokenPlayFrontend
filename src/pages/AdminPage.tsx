@@ -3587,7 +3587,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         autoComplete="new-password"
                       />
                       <span className="text-xs font-semibold text-amber-800">
-                        Use essa opcao se o arquivo que voce recebeu for .pfx ou .p12. Ela evita o erro DECODER unsupported.
+                        Use essa opcao se o arquivo que voce recebeu for .pfx ou .p12. Ela resolve TLS, mas o Pix Santander pode pedir tambem a chave privada PEM para assinar JWT RS256.
                       </span>
                     </label>
 
@@ -3636,7 +3636,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         }
                       />
                       <span className="text-xs font-semibold text-amber-800">
-                        A chave privada nao aparece no portal. Ela fica no computador/empresa que gerou o certificado usado no cadastro.
+                        Necessaria quando o Santander retorna AlgorithmMismatch/RS256. Ela nao aparece no portal; fica com quem gerou o certificado.
                       </span>
                     </label>
                   </div>
