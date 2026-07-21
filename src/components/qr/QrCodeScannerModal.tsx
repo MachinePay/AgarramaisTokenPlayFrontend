@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { IScannerControls } from "@zxing/browser";
 
 type QrCodeScannerModalProps = {
   open: boolean;
@@ -15,8 +16,7 @@ export function QrCodeScannerModal({ open, onClose, onScan }: QrCodeScannerModal
     if (!open) return;
 
     let active = true;
-    let frameId = 0;
-    let stream: MediaStream | null = null;
+    let controls: IScannerControls | null = null;
 
     async function startScanner() {
       setError(null);
@@ -26,46 +26,31 @@ export function QrCodeScannerModal({ open, onClose, onScan }: QrCodeScannerModal
         return;
       }
 
-      const BarcodeDetectorCtor = (window as unknown as { BarcodeDetector?: new (options: { formats: string[] }) => { detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue: string }>> } }).BarcodeDetector;
-      if (!BarcodeDetectorCtor) {
-        setError("Leitor de QR Code nao suportado neste navegador. Tente pelo Chrome no celular.");
-        return;
-      }
-
       try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: false,
+        const { BrowserQRCodeReader } = await import("@zxing/browser");
+        const reader = new BrowserQRCodeReader(undefined, {
+          delayBetweenScanAttempts: 250,
+          delayBetweenScanSuccess: 500,
         });
 
-        const video = videoRef.current;
-        if (!video || !active) return;
+        controls = await reader.decodeFromConstraints({
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
+        }, videoRef.current ?? undefined, (result, _error, scannerControls) => {
+          if (!active || !result) return;
 
-        video.srcObject = stream;
-        await video.play();
-
-        const detector = new BarcodeDetectorCtor({ formats: ["qr_code"] });
-
-        const scan = async () => {
-          if (!active || !videoRef.current) return;
-
-          if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-            const codes = await detector.detect(video).catch(() => []);
-            const value = codes[0]?.rawValue;
-            if (value) {
-              const accepted = onScan(value);
-              if (accepted) {
-                active = false;
-                return;
-              }
-              setError("QR Code nao reconhecido para esta plataforma.");
-            }
+          const accepted = onScan(result.getText());
+          if (accepted) {
+            active = false;
+            scannerControls.stop();
+            return;
           }
-
-          frameId = window.requestAnimationFrame(scan);
-        };
-
-        frameId = window.requestAnimationFrame(scan);
+          setError("QR Code nao reconhecido para esta plataforma.");
+        });
       } catch {
         setError("Nao foi possivel abrir a camera. Verifique a permissao do navegador.");
       }
@@ -75,8 +60,7 @@ export function QrCodeScannerModal({ open, onClose, onScan }: QrCodeScannerModal
 
     return () => {
       active = false;
-      window.cancelAnimationFrame(frameId);
-      stream?.getTracks().forEach((track) => track.stop());
+      controls?.stop();
       if (videoRef.current) videoRef.current.srcObject = null;
     };
   }, [onScan, open]);
