@@ -180,7 +180,7 @@ const defaultFilters: AdminFilters = {
   stores: { search: "", status: "ALL" },
   machines: { search: "", status: "ALL" },
   products: { search: "", status: "ALL" },
-  orders: { search: "", status: "ALL" },
+  orders: { search: "", status: "ALL", dateFrom: getDaysAgoInputValue(6), dateTo: todayInputValue },
   privacy: { search: "", status: "ALL" },
 };
 
@@ -477,6 +477,12 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
   const [reportMachineId, setReportMachineId] = useState("ALL");
   const [reportTransactionStatus, setReportTransactionStatus] = useState("ALL");
   const [reportGameplayStatus, setReportGameplayStatus] = useState("ALL");
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [orderPaymentMethod, setOrderPaymentMethod] = useState("ALL");
+  const [orderProductId, setOrderProductId] = useState("ALL");
+  const [orderMinAmount, setOrderMinAmount] = useState("");
+  const [orderMaxAmount, setOrderMaxAmount] = useState("");
+  const [orderLimit, setOrderLimit] = useState("100");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -749,6 +755,44 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       gameplayMaxCredits,
   );
 
+  const loadAdminOrders = useCallback(async (overrides?: {
+    filter?: AdminFilter;
+    paymentMethod?: string;
+    productId?: string;
+    minAmount?: string;
+    maxAmount?: string;
+    limit?: string;
+  }) => {
+    setOrdersLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams();
+      const filter = overrides?.filter ?? filters.orders;
+      const paymentMethod = overrides?.paymentMethod ?? orderPaymentMethod;
+      const productId = overrides?.productId ?? orderProductId;
+      const minAmount = overrides?.minAmount ?? orderMinAmount;
+      const maxAmount = overrides?.maxAmount ?? orderMaxAmount;
+      const limit = overrides?.limit ?? orderLimit;
+      if (filter.search.trim()) params.set("search", filter.search.trim());
+      if (filter.status !== "ALL") params.set("status", filter.status);
+      if (filter.dateFrom) params.set("dateFrom", filter.dateFrom);
+      if (filter.dateTo) params.set("dateTo", filter.dateTo);
+      if (paymentMethod !== "ALL") params.set("paymentMethod", paymentMethod);
+      if (productId !== "ALL") params.set("productId", productId);
+      if (minAmount.trim()) params.set("minAmountBrl", String(toNumber(minAmount)));
+      if (maxAmount.trim()) params.set("maxAmountBrl", String(toNumber(maxAmount)));
+      if (limit.trim()) params.set("limit", limit.trim());
+
+      const suffix = params.toString();
+      const data = await apiRequest<AdminProductOrder[]>(`/admin/orders${suffix ? `?${suffix}` : ""}`);
+      setOrders(data);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel carregar as entregas");
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [filters.orders, orderLimit, orderMaxAmount, orderMinAmount, orderPaymentMethod, orderProductId]);
+
   const loadAdminData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -773,7 +817,9 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
         apiRequest<Store[]>("/admin/stores"),
         apiRequest<AdminMachine[]>("/admin/machines"),
         apiRequest<Product[]>("/admin/products"),
-        apiRequest<AdminProductOrder[]>("/admin/orders"),
+        apiRequest<AdminProductOrder[]>(
+          `/admin/orders?dateFrom=${defaultFilters.orders.dateFrom}&dateTo=${defaultFilters.orders.dateTo}&limit=100`,
+        ),
         apiRequest<AdminPrivacyRequest[]>("/admin/privacy-requests").catch((err) => {
           if (err instanceof ApiError && err.status === 404) return [];
           throw err;
@@ -1378,7 +1424,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     setError(null);
     try {
       await apiRequest(`/admin/orders/${order.id}/deliver`, { method: "POST" });
-      await loadAdminData();
+      await loadAdminOrders();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel marcar como entregue");
     } finally {
@@ -1394,7 +1440,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     setError(null);
     try {
       await apiRequest(`/admin/orders/${order.id}/cancel`, { method: "POST" });
-      await loadAdminData();
+      await loadAdminOrders();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel cancelar o pedido");
     } finally {
@@ -3079,29 +3125,149 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
 
       {!loading && activeTab === "orders" && (
         <section className="flex flex-col gap-4">
-          <AdminFilterBar
-            search={filters.orders.search}
-            status={filters.orders.status}
-            total={orders.length}
-            filtered={filteredOrders.length}
-            searchPlaceholder="Buscar por produto, cliente ou email"
-            statusOptions={[
-              { value: "ALL", label: "Todos" },
-              { value: "AWAITING_DELIVERY", label: "A entregar" },
-              { value: "PENDING_PAYMENT", label: "Aguardando pagamento" },
-              { value: "DELIVERED", label: "Entregues" },
-              { value: "CANCELED", label: "Cancelados" },
-              { value: "FAILED", label: "Falhos" },
-            ]}
-            onSearchChange={(value) => updateFilter("orders", "search", value)}
-            onStatusChange={(value) => updateFilter("orders", "status", value)}
-            onClear={() => clearFilter("orders")}
-          />
+          <form
+            className="rounded-2xl border border-white/80 bg-white/90 p-4 shadow-sm"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void loadAdminOrders();
+            }}
+          >
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+              <input
+                className={`${filterInputClass} xl:col-span-2`}
+                placeholder="🔎 Produto, cliente ou email"
+                value={filters.orders.search}
+                onChange={(event) => updateFilter("orders", "search", event.target.value)}
+              />
+              <select
+                className={filterInputClass}
+                value={filters.orders.status}
+                onChange={(event) => updateFilter("orders", "status", event.target.value)}
+              >
+                <option value="ALL">Todos os status</option>
+                <option value="AWAITING_DELIVERY">A entregar</option>
+                <option value="PENDING_PAYMENT">Aguardando pagamento</option>
+                <option value="DELIVERED">Entregues</option>
+                <option value="CANCELED">Cancelados</option>
+                <option value="FAILED">Falhos</option>
+              </select>
+              <select
+                className={filterInputClass}
+                value={orderPaymentMethod}
+                onChange={(event) => setOrderPaymentMethod(event.target.value)}
+              >
+                <option value="ALL">Todas as formas</option>
+                <option value="MONEY">Dinheiro/Pix/cartao</option>
+                <option value="CREDITS">Fichas</option>
+                <option value="POINTS">Pontos</option>
+              </select>
+              <select
+                className={`${filterInputClass} xl:col-span-2`}
+                value={orderProductId}
+                onChange={(event) => setOrderProductId(event.target.value)}
+              >
+                <option value="ALL">Todos os produtos</option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name}
+                  </option>
+                ))}
+              </select>
+              <label className="flex flex-col gap-1 text-xs font-bold text-gray-500">
+                De
+                <input
+                  className={filterInputClass}
+                  type="date"
+                  value={filters.orders.dateFrom ?? ""}
+                  onChange={(event) => updateFilter("orders", "dateFrom", event.target.value)}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs font-bold text-gray-500">
+                Ate
+                <input
+                  className={filterInputClass}
+                  type="date"
+                  value={filters.orders.dateTo ?? ""}
+                  onChange={(event) => updateFilter("orders", "dateTo", event.target.value)}
+                />
+              </label>
+              <input
+                className={filterInputClass}
+                inputMode="decimal"
+                placeholder="Valor minimo R$"
+                value={orderMinAmount}
+                onChange={(event) => setOrderMinAmount(event.target.value)}
+              />
+              <input
+                className={filterInputClass}
+                inputMode="decimal"
+                placeholder="Valor maximo R$"
+                value={orderMaxAmount}
+                onChange={(event) => setOrderMaxAmount(event.target.value)}
+              />
+              <select className={filterInputClass} value={orderLimit} onChange={(event) => setOrderLimit(event.target.value)}>
+                <option value="50">50 resultados</option>
+                <option value="100">100 resultados</option>
+                <option value="200">200 resultados</option>
+              </select>
+              <div className="flex flex-wrap items-end gap-2 xl:col-span-6">
+                <AdminButton type="submit" variant="primary" disabled={ordersLoading}>
+                  {ordersLoading ? "Buscando..." : "Buscar"}
+                </AdminButton>
+                <AdminButton
+                  type="button"
+                  onClick={() => {
+                    const nextFilter = { ...filters.orders, dateFrom: getDaysAgoInputValue(6), dateTo: todayInputValue };
+                    setFilters((current) => ({ ...current, orders: nextFilter }));
+                    void loadAdminOrders({ filter: nextFilter });
+                  }}
+                >
+                  Ultimos 7 dias
+                </AdminButton>
+                <AdminButton
+                  type="button"
+                  onClick={() => {
+                    const nextFilter = { ...filters.orders, dateFrom: todayInputValue, dateTo: todayInputValue };
+                    setFilters((current) => ({ ...current, orders: nextFilter }));
+                    void loadAdminOrders({ filter: nextFilter });
+                  }}
+                >
+                  Hoje
+                </AdminButton>
+                <AdminButton
+                  type="button"
+                  onClick={() => {
+                    const nextFilter = defaultFilters.orders;
+                    setFilters((current) => ({ ...current, orders: nextFilter }));
+                    setOrderPaymentMethod("ALL");
+                    setOrderProductId("ALL");
+                    setOrderMinAmount("");
+                    setOrderMaxAmount("");
+                    setOrderLimit("100");
+                    void loadAdminOrders({
+                      filter: nextFilter,
+                      paymentMethod: "ALL",
+                      productId: "ALL",
+                      minAmount: "",
+                      maxAmount: "",
+                      limit: "100",
+                    });
+                  }}
+                >
+                  Limpar
+                </AdminButton>
+                <span className="text-xs font-bold text-gray-500">
+                  Mostrando {filteredOrders.length} de {orders.length}
+                </span>
+              </div>
+            </div>
+          </form>
 
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {orders.length === 0 && <AdminEmptyState icon="📮" message="Nenhum pedido de produto ainda." />}
+            {ordersLoading && <AdminEmptyState icon="📮" message="Carregando entregas..." />}
+            {!ordersLoading && orders.length === 0 && <AdminEmptyState icon="📮" message="Nenhum pedido nesse filtro." />}
 
-            {filteredOrders.map((order) => (
+            {!ordersLoading && filteredOrders.map((order) => (
               <AdminCard key={order.id}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
