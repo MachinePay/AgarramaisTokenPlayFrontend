@@ -1153,22 +1153,28 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     const nextSantanderPixKey = String(data.get("santanderPixKey") || "");
 
     try {
-      const updated = await apiRequest<AdminSettings>("/admin/settings", {
-        method: "PUT",
-        body: {
-          paymentProvider: nextPaymentProvider,
-          santanderEnvironment: nextSantanderEnvironment,
-          santanderBaseUrl: nextSantanderBaseUrl,
-          santanderPixBaseUrl: nextSantanderPixBaseUrl,
-          santanderClientId: nextSantanderClientId || undefined,
-          santanderClientSecret: nextSantanderClientSecret || undefined,
-          santanderCertificatePem: nextSantanderCertificatePem || undefined,
-          santanderPrivateKeyPem: nextSantanderPrivateKeyPem || undefined,
-          santanderPfxBase64: nextSantanderPfxBase64 || undefined,
-          santanderPfxPassphrase: nextSantanderPfxPassphrase || undefined,
-          santanderPixKey: nextSantanderPixKey || undefined,
-        },
-      });
+      const updated =
+        nextPaymentProvider === "MERCADO_PAGO"
+          ? await apiRequest<AdminSettings>("/admin/settings/payment-provider", {
+              method: "PUT",
+              body: { paymentProvider: "MERCADO_PAGO" },
+            })
+          : await apiRequest<AdminSettings>("/admin/settings", {
+              method: "PUT",
+              body: {
+                paymentProvider: nextPaymentProvider,
+                santanderEnvironment: nextSantanderEnvironment,
+                santanderBaseUrl: nextSantanderBaseUrl,
+                santanderPixBaseUrl: nextSantanderPixBaseUrl,
+                santanderClientId: nextSantanderClientId || undefined,
+                santanderClientSecret: nextSantanderClientSecret || undefined,
+                santanderCertificatePem: nextSantanderCertificatePem || undefined,
+                santanderPrivateKeyPem: nextSantanderPrivateKeyPem || undefined,
+                santanderPfxBase64: nextSantanderPfxBase64 || undefined,
+                santanderPfxPassphrase: nextSantanderPfxPassphrase || undefined,
+                santanderPixKey: nextSantanderPixKey || undefined,
+              },
+            });
       setSettings(updated);
       setPaymentProvider(updated.paymentProvider);
       setSantanderEnvironment(updated.santanderEnvironment);
