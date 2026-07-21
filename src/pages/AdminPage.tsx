@@ -1113,22 +1113,32 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     }
   }
 
-  async function submitFinanceSettings(event: FormEvent) {
+  async function submitFinanceSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
     setError(null);
+    const data = new FormData(event.currentTarget);
+    const nextPaymentProvider = String(data.get("paymentProvider") || paymentProvider) as AdminSettings["paymentProvider"];
+    const nextSantanderEnvironment = String(data.get("santanderEnvironment") || santanderEnvironment) as AdminSettings["santanderEnvironment"];
+    const nextSantanderBaseUrl = String(data.get("santanderBaseUrl") || santanderBaseUrl);
+    const nextSantanderClientId = String(data.get("santanderClientId") || "");
+    const nextSantanderClientSecret = String(data.get("santanderClientSecret") || "");
+    const nextSantanderCertificatePem = String(data.get("santanderCertificatePem") || "");
+    const nextSantanderPrivateKeyPem = String(data.get("santanderPrivateKeyPem") || "");
+    const nextSantanderPixKey = String(data.get("santanderPixKey") || "");
+
     try {
       const updated = await apiRequest<AdminSettings>("/admin/settings", {
         method: "PUT",
         body: {
-          paymentProvider,
-          santanderEnvironment,
-          santanderBaseUrl,
-          santanderClientId: santanderClientId || undefined,
-          santanderClientSecret: santanderClientSecret || undefined,
-          santanderCertificatePem: santanderCertificatePem || undefined,
-          santanderPrivateKeyPem: santanderPrivateKeyPem || undefined,
-          santanderPixKey: santanderPixKey || undefined,
+          paymentProvider: nextPaymentProvider,
+          santanderEnvironment: nextSantanderEnvironment,
+          santanderBaseUrl: nextSantanderBaseUrl,
+          santanderClientId: nextSantanderClientId || undefined,
+          santanderClientSecret: nextSantanderClientSecret || undefined,
+          santanderCertificatePem: nextSantanderCertificatePem || undefined,
+          santanderPrivateKeyPem: nextSantanderPrivateKeyPem || undefined,
+          santanderPixKey: nextSantanderPixKey || undefined,
         },
       });
       setSettings(updated);
@@ -3425,6 +3435,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             <label className="flex flex-col gap-1.5">
               <span className="text-xs font-extrabold uppercase text-gray-500">Banco usado no checkout</span>
               <select
+                name="paymentProvider"
                 className={inputClass}
                 value={paymentProvider}
                 onChange={(event) => setPaymentProvider(event.target.value as AdminSettings["paymentProvider"])}
@@ -3439,6 +3450,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                 <label className="flex flex-col gap-1.5">
                   <span className="text-xs font-extrabold uppercase text-gray-500">Ambiente Santander</span>
                   <select
+                    name="santanderEnvironment"
                     className={inputClass}
                     value={santanderEnvironment}
                     onChange={(event) => setSantanderEnvironment(event.target.value as AdminSettings["santanderEnvironment"])}
@@ -3452,10 +3464,12 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <label className="flex flex-col gap-1.5">
                     <span className="text-xs font-extrabold uppercase text-gray-500">Client ID</span>
                     <input
-                      className={inputClass}
-                      value={santanderClientId}
-                      onChange={(event) => setSantanderClientId(event.target.value)}
-                      required={!settings?.santanderClientIdSet}
+                        className={inputClass}
+                        name="santanderClientId"
+                        value={santanderClientId}
+                        onChange={(event) => setSantanderClientId(event.target.value)}
+                        autoComplete="off"
+                        required={!settings?.santanderClientIdSet}
                       placeholder={settings?.santanderClientIdSet ? "Ja cadastrado - preencha para trocar" : "Cole o Client ID"}
                     />
                     <span className="text-xs font-semibold text-gray-500">
@@ -3465,11 +3479,13 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <label className="flex flex-col gap-1.5">
                     <span className="text-xs font-extrabold uppercase text-gray-500">Client Secret</span>
                     <input
-                      className={inputClass}
-                      type="password"
-                      value={santanderClientSecret}
-                      onChange={(event) => setSantanderClientSecret(event.target.value)}
-                      required={!settings?.santanderClientSecretSet}
+                        className={inputClass}
+                        name="santanderClientSecret"
+                        type="password"
+                        value={santanderClientSecret}
+                        onChange={(event) => setSantanderClientSecret(event.target.value)}
+                        autoComplete="new-password"
+                        required={!settings?.santanderClientSecretSet}
                       placeholder={settings?.santanderClientSecretSet ? "Ja cadastrado - preencha para trocar" : "Cole o Client Secret"}
                     />
                   </label>
@@ -3479,8 +3495,10 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <span className="text-xs font-extrabold uppercase text-gray-500">Chave Pix recebedora</span>
                   <input
                     className={inputClass}
+                    name="santanderPixKey"
                     value={santanderPixKey}
                     onChange={(event) => setSantanderPixKey(event.target.value)}
+                    autoComplete="off"
                     required={!settings?.santanderPixKeySet}
                     placeholder={settings?.santanderPixKeySet ? "Ja cadastrada - preencha para trocar" : "CPF, CNPJ, email, telefone ou chave aleatoria"}
                   />
@@ -3496,6 +3514,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                       <span className="text-xs font-extrabold uppercase text-gray-500">URL base da API Santander</span>
                       <input
                         className={inputClass}
+                        name="santanderBaseUrl"
                         type="url"
                         value={santanderBaseUrl}
                         onChange={(event) => setSantanderBaseUrl(event.target.value)}
@@ -3507,6 +3526,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                       <span className="text-xs font-extrabold uppercase text-gray-500">Certificado Santander PEM</span>
                       <textarea
                         className={`${inputClass} min-h-28 resize-y`}
+                        name="santanderCertificatePem"
                         value={santanderCertificatePem}
                         onChange={(event) => setSantanderCertificatePem(event.target.value)}
                         placeholder={settings?.santanderCertificatePemSet ? "Certificado ja cadastrado - cole outro para trocar" : "Cole apenas se o Santander exigir mTLS"}
@@ -3517,6 +3537,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                       <span className="text-xs font-extrabold uppercase text-gray-500">Chave privada PEM</span>
                       <textarea
                         className={`${inputClass} min-h-28 resize-y`}
+                        name="santanderPrivateKeyPem"
                         value={santanderPrivateKeyPem}
                         onChange={(event) => setSantanderPrivateKeyPem(event.target.value)}
                         placeholder={settings?.santanderPrivateKeyPemSet ? "Chave ja cadastrada - cole outra para trocar" : "Cole apenas se o Santander exigir mTLS"}
