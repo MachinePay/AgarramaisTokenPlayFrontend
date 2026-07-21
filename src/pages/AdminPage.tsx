@@ -3587,7 +3587,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         autoComplete="new-password"
                       />
                       <span className="text-xs font-semibold text-amber-800">
-                        Use essa opcao se o arquivo que voce recebeu for .pfx ou .p12. Ela resolve TLS, mas o Pix Santander pode pedir tambem a chave privada PEM para assinar JWT RS256.
+                        Use essa opcao se o arquivo for .pfx ou .p12. Para o JWT RS256, informe tambem a chave privada em PEM abaixo.
                       </span>
                     </label>
 
@@ -3632,7 +3632,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         placeholder={
                           settings?.santanderPrivateKeyPemSet
                             ? "Chave ja cadastrada - cole outra para trocar"
-                            : "Cole a chave privada PEM, ou deixe vazio se o certificado acima ja vier com PRIVATE KEY"
+                            : "Cole a chave privada PEM com BEGIN PRIVATE KEY"
                         }
                       />
                       <span className="text-xs font-semibold text-amber-800">
