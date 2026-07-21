@@ -248,6 +248,14 @@ export type AdminSettings = {
   tokenBundleCredits: number;
   tokenValueBrl: string;
   pointsPerCredit: number;
+  paymentProvider: "MERCADO_PAGO" | "SANTANDER";
+  santanderEnvironment: "SANDBOX" | "PRODUCTION";
+  santanderBaseUrl: string;
+  santanderClientIdSet: boolean;
+  santanderClientSecretSet: boolean;
+  santanderCertificatePemSet: boolean;
+  santanderPrivateKeyPemSet: boolean;
+  santanderPixKeySet: boolean;
 };
 
 export type Product = {

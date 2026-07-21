@@ -25,12 +25,22 @@ export function FichasPage() {
   useEffect(() => {
     Promise.all([
       apiRequest<CreditPackage[]>("/packages"),
-      apiRequest<AdminSettings>("/settings/credits").catch(() => ({
-        tokenBundleAmountBrl: "1.00",
-        tokenBundleCredits: 1,
-        tokenValueBrl: "1.00",
-        pointsPerCredit: 0,
-      })),
+      apiRequest<AdminSettings>("/settings/credits").catch(
+        (): AdminSettings => ({
+          tokenBundleAmountBrl: "1.00",
+          tokenBundleCredits: 1,
+          tokenValueBrl: "1.00",
+          pointsPerCredit: 0,
+          paymentProvider: "MERCADO_PAGO",
+          santanderEnvironment: "SANDBOX",
+          santanderBaseUrl: "https://trust-sandbox.api.santander.com.br",
+          santanderClientIdSet: false,
+          santanderClientSecretSet: false,
+          santanderCertificatePemSet: false,
+          santanderPrivateKeyPemSet: false,
+          santanderPixKeySet: false,
+        }),
+      ),
     ])
       .then(([packagesData, settingsData]) => {
         setPackages(packagesData);

@@ -37,6 +37,7 @@ type AdminTab =
   | "machines"
   | "products"
   | "orders"
+  | "finance"
   | "privacy"
   | "reports";
 
@@ -140,7 +141,7 @@ const privacyRequestStatusLabel: Record<AdminPrivacyRequest["status"], string> =
   REJECTED: "Recusado",
 };
 
-type FilterableTab = Exclude<AdminTab, "summary" | "reports">;
+type FilterableTab = Exclude<AdminTab, "summary" | "finance" | "reports">;
 
 type AdminFilter = {
   search: string;
@@ -196,6 +197,7 @@ const tabs: Array<{ id: AdminTab; label: string; icon: string }> = [
   { id: "machines", label: "Maquinas", icon: "🧸" },
   { id: "products", label: "Produtos", icon: "🛍️" },
   { id: "orders", label: "Entregas", icon: "📮" },
+  { id: "finance", label: "Financeiro", icon: "🏦" },
   { id: "privacy", label: "LGPD", icon: "LG" },
   { id: "reports", label: "Relatorios", icon: "📈" },
 ];
@@ -239,7 +241,20 @@ async function loadAdminSettingsWithFallback(): Promise<AdminSettings> {
     return await apiRequest<AdminSettings>("/admin/settings");
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) {
-      return { tokenBundleAmountBrl: "1.00", tokenBundleCredits: 1, tokenValueBrl: "1.00", pointsPerCredit: 0 };
+      return {
+        tokenBundleAmountBrl: "1.00",
+        tokenBundleCredits: 1,
+        tokenValueBrl: "1.00",
+        pointsPerCredit: 0,
+        paymentProvider: "MERCADO_PAGO",
+        santanderEnvironment: "SANDBOX",
+        santanderBaseUrl: "https://trust-sandbox.api.santander.com.br",
+        santanderClientIdSet: false,
+        santanderClientSecretSet: false,
+        santanderCertificatePemSet: false,
+        santanderPrivateKeyPemSet: false,
+        santanderPixKeySet: false,
+      };
     }
     throw err;
   }
@@ -490,6 +505,14 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
   const [tokenBundleAmountBrl, setTokenBundleAmountBrl] = useState("1,00");
   const [tokenBundleCredits, setTokenBundleCredits] = useState("1");
   const [pointsPerCredit, setPointsPerCredit] = useState("0");
+  const [paymentProvider, setPaymentProvider] = useState<AdminSettings["paymentProvider"]>("MERCADO_PAGO");
+  const [santanderEnvironment, setSantanderEnvironment] = useState<AdminSettings["santanderEnvironment"]>("SANDBOX");
+  const [santanderBaseUrl, setSantanderBaseUrl] = useState("https://trust-sandbox.api.santander.com.br");
+  const [santanderClientId, setSantanderClientId] = useState("");
+  const [santanderClientSecret, setSantanderClientSecret] = useState("");
+  const [santanderCertificatePem, setSantanderCertificatePem] = useState("");
+  const [santanderPrivateKeyPem, setSantanderPrivateKeyPem] = useState("");
+  const [santanderPixKey, setSantanderPixKey] = useState("");
 
   const [userForm, setUserForm] = useState<UserForm>({
     name: "",
@@ -837,6 +860,9 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       setTokenBundleAmountBrl(settingsData.tokenBundleAmountBrl.replace(".", ","));
       setTokenBundleCredits(String(settingsData.tokenBundleCredits));
       setPointsPerCredit(String(settingsData.pointsPerCredit));
+      setPaymentProvider(settingsData.paymentProvider);
+      setSantanderEnvironment(settingsData.santanderEnvironment);
+      setSantanderBaseUrl(settingsData.santanderBaseUrl);
       setUsers(usersData);
       setTransactions(transactionsData);
       setCampaigns(campaignsData);
@@ -1082,6 +1108,40 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       setPointsPerCredit(String(updated.pointsPerCredit));
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o valor da ficha");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function submitFinanceSettings(event: FormEvent) {
+    event.preventDefault();
+    setSaving(true);
+    setError(null);
+    try {
+      const updated = await apiRequest<AdminSettings>("/admin/settings", {
+        method: "PUT",
+        body: {
+          paymentProvider,
+          santanderEnvironment,
+          santanderBaseUrl,
+          santanderClientId: santanderClientId || undefined,
+          santanderClientSecret: santanderClientSecret || undefined,
+          santanderCertificatePem: santanderCertificatePem || undefined,
+          santanderPrivateKeyPem: santanderPrivateKeyPem || undefined,
+          santanderPixKey: santanderPixKey || undefined,
+        },
+      });
+      setSettings(updated);
+      setPaymentProvider(updated.paymentProvider);
+      setSantanderEnvironment(updated.santanderEnvironment);
+      setSantanderBaseUrl(updated.santanderBaseUrl);
+      setSantanderClientId("");
+      setSantanderClientSecret("");
+      setSantanderCertificatePem("");
+      setSantanderPrivateKeyPem("");
+      setSantanderPixKey("");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Nao foi possivel salvar o financeiro");
     } finally {
       setSaving(false);
     }
@@ -3356,6 +3416,121 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               </AdminCard>
             ))}
           </div>
+        </section>
+      )}
+
+      {!loading && activeTab === "finance" && (
+        <section className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+          <AdminFormSection title="Setor financeiro" onSubmit={submitFinanceSettings}>
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-extrabold uppercase text-gray-500">Banco usado no checkout</span>
+              <select
+                className={inputClass}
+                value={paymentProvider}
+                onChange={(event) => setPaymentProvider(event.target.value as AdminSettings["paymentProvider"])}
+              >
+                <option value="MERCADO_PAGO">Mercado Pago</option>
+                <option value="SANTANDER">Santander</option>
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-extrabold uppercase text-gray-500">Ambiente Santander</span>
+              <select
+                className={inputClass}
+                value={santanderEnvironment}
+                onChange={(event) => setSantanderEnvironment(event.target.value as AdminSettings["santanderEnvironment"])}
+              >
+                <option value="SANDBOX">Sandbox</option>
+                <option value="PRODUCTION">Producao</option>
+              </select>
+            </label>
+
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-extrabold uppercase text-gray-500">URL base da API Santander</span>
+              <input
+                className={inputClass}
+                type="url"
+                value={santanderBaseUrl}
+                onChange={(event) => setSantanderBaseUrl(event.target.value)}
+                placeholder="https://trust-sandbox.api.santander.com.br"
+              />
+            </label>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Client ID</span>
+                <input
+                  className={inputClass}
+                  value={santanderClientId}
+                  onChange={(event) => setSantanderClientId(event.target.value)}
+                  placeholder={settings?.santanderClientIdSet ? "Ja cadastrado - preencha para trocar" : "Cole o Client ID"}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Client Secret</span>
+                <input
+                  className={inputClass}
+                  type="password"
+                  value={santanderClientSecret}
+                  onChange={(event) => setSantanderClientSecret(event.target.value)}
+                  placeholder={settings?.santanderClientSecretSet ? "Ja cadastrado - preencha para trocar" : "Cole o Client Secret"}
+                />
+              </label>
+            </div>
+
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-extrabold uppercase text-gray-500">Chave Pix recebedora</span>
+              <input
+                className={inputClass}
+                value={santanderPixKey}
+                onChange={(event) => setSantanderPixKey(event.target.value)}
+                placeholder={settings?.santanderPixKeySet ? "Ja cadastrada - preencha para trocar" : "CPF, CNPJ, email, telefone ou chave aleatoria"}
+              />
+            </label>
+
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-extrabold uppercase text-gray-500">Certificado Santander PEM</span>
+              <textarea
+                className={`${inputClass} min-h-28 resize-y`}
+                value={santanderCertificatePem}
+                onChange={(event) => setSantanderCertificatePem(event.target.value)}
+                placeholder={settings?.santanderCertificatePemSet ? "Certificado ja cadastrado - cole outro para trocar" : "Cole o certificado, se a API exigir"}
+              />
+            </label>
+
+            <label className="flex flex-col gap-1.5">
+              <span className="text-xs font-extrabold uppercase text-gray-500">Chave privada PEM</span>
+              <textarea
+                className={`${inputClass} min-h-28 resize-y`}
+                value={santanderPrivateKeyPem}
+                onChange={(event) => setSantanderPrivateKeyPem(event.target.value)}
+                placeholder={settings?.santanderPrivateKeyPemSet ? "Chave ja cadastrada - cole outra para trocar" : "Cole a chave privada, se a API exigir"}
+              />
+            </label>
+
+            <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
+              Salvar financeiro
+            </AdminButton>
+          </AdminFormSection>
+
+          <AdminCard>
+            <p className="text-xs font-black uppercase text-orange-600">Checkout ativo</p>
+            <h3 className="mt-1 text-2xl font-black text-brand-black">
+              {settings?.paymentProvider === "SANTANDER" ? "Santander" : "Mercado Pago"}
+            </h3>
+            <div className="mt-4 grid gap-2 text-sm font-bold text-gray-600">
+              <p>Ambiente: {settings?.santanderEnvironment === "PRODUCTION" ? "Producao" : "Sandbox"}</p>
+              <p>Client ID: {settings?.santanderClientIdSet ? "Cadastrado" : "Nao cadastrado"}</p>
+              <p>Client Secret: {settings?.santanderClientSecretSet ? "Cadastrado" : "Nao cadastrado"}</p>
+              <p>Chave Pix: {settings?.santanderPixKeySet ? "Cadastrada" : "Nao cadastrada"}</p>
+              <p>Certificado: {settings?.santanderCertificatePemSet ? "Cadastrado" : "Nao cadastrado"}</p>
+              <p>Chave privada: {settings?.santanderPrivateKeyPemSet ? "Cadastrada" : "Nao cadastrada"}</p>
+            </div>
+            <div className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
+              A integracao real do Santander sera conectada depois que voce enviar a documentacao da API sandbox.
+            </div>
+          </AdminCard>
         </section>
       )}
 
