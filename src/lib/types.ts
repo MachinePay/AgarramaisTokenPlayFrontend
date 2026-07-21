@@ -251,6 +251,7 @@ export type AdminSettings = {
   paymentProvider: "MERCADO_PAGO" | "SANTANDER";
   santanderEnvironment: "SANDBOX" | "PRODUCTION";
   santanderBaseUrl: string;
+  santanderPixBaseUrl: string;
   santanderClientIdSet: boolean;
   santanderClientSecretSet: boolean;
   santanderCertificatePemSet: boolean;

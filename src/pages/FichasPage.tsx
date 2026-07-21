@@ -34,6 +34,7 @@ export function FichasPage() {
           paymentProvider: "MERCADO_PAGO",
           santanderEnvironment: "SANDBOX",
           santanderBaseUrl: "https://trust-sandbox.api.santander.com.br",
+          santanderPixBaseUrl: "https://pix.santander.com.br/api/v1/sandbox",
           santanderClientIdSet: false,
           santanderClientSecretSet: false,
           santanderCertificatePemSet: false,

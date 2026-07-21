@@ -249,6 +249,7 @@ async function loadAdminSettingsWithFallback(): Promise<AdminSettings> {
         paymentProvider: "MERCADO_PAGO",
         santanderEnvironment: "SANDBOX",
         santanderBaseUrl: "https://trust-sandbox.api.santander.com.br",
+        santanderPixBaseUrl: "https://pix.santander.com.br/api/v1/sandbox",
         santanderClientIdSet: false,
         santanderClientSecretSet: false,
         santanderCertificatePemSet: false,
@@ -509,6 +510,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
   const [paymentProvider, setPaymentProvider] = useState<AdminSettings["paymentProvider"]>("MERCADO_PAGO");
   const [santanderEnvironment, setSantanderEnvironment] = useState<AdminSettings["santanderEnvironment"]>("SANDBOX");
   const [santanderBaseUrl, setSantanderBaseUrl] = useState("https://trust-sandbox.api.santander.com.br");
+  const [santanderPixBaseUrl, setSantanderPixBaseUrl] = useState("https://pix.santander.com.br/api/v1/sandbox");
   const [santanderClientId, setSantanderClientId] = useState("");
   const [santanderClientSecret, setSantanderClientSecret] = useState("");
   const [santanderCertificatePem, setSantanderCertificatePem] = useState("");
@@ -882,6 +884,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       setPaymentProvider(settingsData.paymentProvider);
       setSantanderEnvironment(settingsData.santanderEnvironment);
       setSantanderBaseUrl(settingsData.santanderBaseUrl);
+      setSantanderPixBaseUrl(settingsData.santanderPixBaseUrl);
       setUsers(usersData);
       setTransactions(transactionsData);
       setCampaigns(campaignsData);
@@ -1140,6 +1143,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     const nextPaymentProvider = String(data.get("paymentProvider") || paymentProvider) as AdminSettings["paymentProvider"];
     const nextSantanderEnvironment = String(data.get("santanderEnvironment") || santanderEnvironment) as AdminSettings["santanderEnvironment"];
     const nextSantanderBaseUrl = String(data.get("santanderBaseUrl") || santanderBaseUrl);
+    const nextSantanderPixBaseUrl = String(data.get("santanderPixBaseUrl") || santanderPixBaseUrl);
     const nextSantanderClientId = String(data.get("santanderClientId") || "");
     const nextSantanderClientSecret = String(data.get("santanderClientSecret") || "");
     const nextSantanderCertificatePem = String(data.get("santanderCertificatePem") || "");
@@ -1155,6 +1159,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
           paymentProvider: nextPaymentProvider,
           santanderEnvironment: nextSantanderEnvironment,
           santanderBaseUrl: nextSantanderBaseUrl,
+          santanderPixBaseUrl: nextSantanderPixBaseUrl,
           santanderClientId: nextSantanderClientId || undefined,
           santanderClientSecret: nextSantanderClientSecret || undefined,
           santanderCertificatePem: nextSantanderCertificatePem || undefined,
@@ -1168,6 +1173,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
       setPaymentProvider(updated.paymentProvider);
       setSantanderEnvironment(updated.santanderEnvironment);
       setSantanderBaseUrl(updated.santanderBaseUrl);
+      setSantanderPixBaseUrl(updated.santanderPixBaseUrl);
       setSantanderClientId("");
       setSantanderClientSecret("");
       setSantanderCertificatePem("");
@@ -3536,7 +3542,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   <summary className="cursor-pointer text-sm font-black text-amber-800">Certificado Santander para OAuth</summary>
                   <div className="mt-3 grid gap-3">
                     <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-extrabold uppercase text-gray-500">URL base da API Santander</span>
+                      <span className="text-xs font-extrabold uppercase text-gray-500">URL OAuth Santander</span>
                       <input
                         className={inputClass}
                         name="santanderBaseUrl"
@@ -3545,6 +3551,21 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         onChange={(event) => setSantanderBaseUrl(event.target.value)}
                         placeholder="https://trust-sandbox.api.santander.com.br"
                       />
+                    </label>
+
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-extrabold uppercase text-gray-500">URL Pix Santander</span>
+                      <input
+                        className={inputClass}
+                        name="santanderPixBaseUrl"
+                        type="url"
+                        value={santanderPixBaseUrl}
+                        onChange={(event) => setSantanderPixBaseUrl(event.target.value)}
+                        placeholder="https://pix.santander.com.br/api/v1/sandbox"
+                      />
+                      <span className="text-xs font-semibold text-amber-800">
+                        Sandbox Pix usa essa base e o sistema chama /cob/txid depois dela.
+                      </span>
                     </label>
 
                     <label className="flex flex-col gap-1.5">
