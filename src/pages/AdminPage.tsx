@@ -3455,8 +3455,12 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                       className={inputClass}
                       value={santanderClientId}
                       onChange={(event) => setSantanderClientId(event.target.value)}
+                      required={!settings?.santanderClientIdSet}
                       placeholder={settings?.santanderClientIdSet ? "Ja cadastrado - preencha para trocar" : "Cole o Client ID"}
                     />
+                    <span className="text-xs font-semibold text-gray-500">
+                      Copie exatamente o Client ID do portal Santander. Nao use email/login.
+                    </span>
                   </label>
                   <label className="flex flex-col gap-1.5">
                     <span className="text-xs font-extrabold uppercase text-gray-500">Client Secret</span>
@@ -3465,6 +3469,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                       type="password"
                       value={santanderClientSecret}
                       onChange={(event) => setSantanderClientSecret(event.target.value)}
+                      required={!settings?.santanderClientSecretSet}
                       placeholder={settings?.santanderClientSecretSet ? "Ja cadastrado - preencha para trocar" : "Cole o Client Secret"}
                     />
                   </label>
@@ -3476,6 +3481,7 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                     className={inputClass}
                     value={santanderPixKey}
                     onChange={(event) => setSantanderPixKey(event.target.value)}
+                    required={!settings?.santanderPixKeySet}
                     placeholder={settings?.santanderPixKeySet ? "Ja cadastrada - preencha para trocar" : "CPF, CNPJ, email, telefone ou chave aleatoria"}
                   />
                   <span className="text-xs font-semibold text-gray-500">
