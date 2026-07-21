@@ -2490,29 +2490,38 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               onChange={(event) => setPackageForm({ ...packageForm, name: event.target.value })}
             />
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-              <input
-                className={inputClass}
-                required
-                inputMode="decimal"
-                placeholder="R$"
-                value={packageForm.amountBrl}
-                onChange={(event) => setPackageForm({ ...packageForm, amountBrl: event.target.value })}
-              />
-              <input
-                className={inputClass}
-                required
-                inputMode="numeric"
-                placeholder="Fichas"
-                value={packageForm.baseCredits}
-                onChange={(event) => setPackageForm({ ...packageForm, baseCredits: event.target.value })}
-              />
-              <input
-                className={inputClass}
-                inputMode="numeric"
-                placeholder="Bônus"
-                value={packageForm.bonusCredits}
-                onChange={(event) => setPackageForm({ ...packageForm, bonusCredits: event.target.value })}
-              />
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Valor do pacote</span>
+                <input
+                  className={inputClass}
+                  required
+                  inputMode="decimal"
+                  placeholder="Ex: 10,00"
+                  value={packageForm.amountBrl}
+                  onChange={(event) => setPackageForm({ ...packageForm, amountBrl: event.target.value })}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Fichas base</span>
+                <input
+                  className={inputClass}
+                  required
+                  inputMode="numeric"
+                  placeholder="Ex: 10"
+                  value={packageForm.baseCredits}
+                  onChange={(event) => setPackageForm({ ...packageForm, baseCredits: event.target.value })}
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-xs font-extrabold uppercase text-gray-500">Fichas bônus</span>
+                <input
+                  className={inputClass}
+                  inputMode="numeric"
+                  placeholder="Ex: 2"
+                  value={packageForm.bonusCredits}
+                  onChange={(event) => setPackageForm({ ...packageForm, bonusCredits: event.target.value })}
+                />
+              </label>
             </div>
             <label className="flex flex-col gap-1.5">
               <span className="text-xs font-extrabold uppercase text-gray-500">Pontos ganhos na compra</span>
@@ -2597,18 +2606,45 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   </div>
                 </div>
                 <form onSubmit={(event) => updatePackagePricing(event, creditPackage)} className="mt-3 grid gap-2">
-                  <div className="grid grid-cols-3 gap-2">
-                    <input name="amountBrl" className={inputClass} inputMode="decimal" defaultValue={String(creditPackage.amountBrl)} />
-                    <input name="baseCredits" className={inputClass} inputMode="numeric" defaultValue={creditPackage.baseCredits} />
-                    <input name="bonusCredits" className={inputClass} inputMode="numeric" defaultValue={creditPackage.bonusCredits} />
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-extrabold uppercase text-gray-500">Valor R$</span>
+                      <input
+                        name="amountBrl"
+                        className={inputClass}
+                        inputMode="decimal"
+                        defaultValue={String(creditPackage.amountBrl)}
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-extrabold uppercase text-gray-500">Fichas base</span>
+                      <input
+                        name="baseCredits"
+                        className={inputClass}
+                        inputMode="numeric"
+                        defaultValue={creditPackage.baseCredits}
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1.5">
+                      <span className="text-xs font-extrabold uppercase text-gray-500">Bônus</span>
+                      <input
+                        name="bonusCredits"
+                        className={inputClass}
+                        inputMode="numeric"
+                        defaultValue={creditPackage.bonusCredits}
+                      />
+                    </label>
                   </div>
-                  <input
-                    name="pointsAwarded"
-                    className={inputClass}
-                    inputMode="numeric"
-                    placeholder="Pontos ganhos na compra"
-                    defaultValue={creditPackage.pointsAwarded}
-                  />
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-xs font-extrabold uppercase text-gray-500">Pontos ganhos na compra</span>
+                    <input
+                      name="pointsAwarded"
+                      className={inputClass}
+                      inputMode="numeric"
+                      placeholder="0"
+                      defaultValue={creditPackage.pointsAwarded}
+                    />
+                  </label>
                   <div className="flex items-center justify-between gap-3">
                     <label className="flex items-center gap-2 text-sm font-medium text-brand-black">
                       <input name="isPopular" type="checkbox" defaultChecked={creditPackage.isPopular} />
