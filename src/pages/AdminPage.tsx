@@ -584,6 +584,11 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
     setFilters((current) => ({ ...current, [tab]: defaultFilters[tab] }));
   };
 
+  const readTextFile = async (file: File | undefined, onRead: (value: string) => void) => {
+    if (!file) return;
+    onRead(await file.text());
+  };
+
   const filteredUsers = useMemo(() => {
     const filter = filters.users;
     return users.filter((user) => {
@@ -3524,6 +3529,12 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
 
                     <label className="flex flex-col gap-1.5">
                       <span className="text-xs font-extrabold uppercase text-gray-500">Certificado Santander PEM</span>
+                      <input
+                        className={inputClass}
+                        type="file"
+                        accept=".pem,.crt,.cer,.txt"
+                        onChange={(event) => void readTextFile(event.target.files?.[0], setSantanderCertificatePem)}
+                      />
                       <textarea
                         className={`${inputClass} min-h-28 resize-y`}
                         name="santanderCertificatePem"
@@ -3537,12 +3548,18 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         }
                       />
                       <span className="text-xs font-semibold text-amber-800">
-                        O Santander exige esse certificado na etapa OAuth. Sem ele a API retorna 403 Reference error.
+                        Selecione o arquivo do certificado que foi cadastrado no portal Santander. Sem ele a API retorna 403 Reference error.
                       </span>
                     </label>
 
                     <label className="flex flex-col gap-1.5">
                       <span className="text-xs font-extrabold uppercase text-gray-500">Chave privada PEM</span>
+                      <input
+                        className={inputClass}
+                        type="file"
+                        accept=".pem,.key,.txt"
+                        onChange={(event) => void readTextFile(event.target.files?.[0], setSantanderPrivateKeyPem)}
+                      />
                       <textarea
                         className={`${inputClass} min-h-28 resize-y`}
                         name="santanderPrivateKeyPem"
@@ -3554,6 +3571,9 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                             : "Cole a chave privada PEM, ou deixe vazio se o certificado acima ja vier com PRIVATE KEY"
                         }
                       />
+                      <span className="text-xs font-semibold text-amber-800">
+                        A chave privada nao aparece no portal. Ela fica no computador/empresa que gerou o certificado usado no cadastro.
+                      </span>
                     </label>
                   </div>
                 </details>
