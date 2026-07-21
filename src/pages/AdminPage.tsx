@@ -3587,12 +3587,12 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         autoComplete="new-password"
                       />
                       <span className="text-xs font-semibold text-amber-800">
-                        Use essa opcao se o arquivo for .pfx ou .p12. Para o JWT RS256, informe tambem a chave privada em PEM abaixo.
+                        Use o arquivo original .pfx ou .p12. Se ele tiver a chave privada, o sistema assina o JWT RS256 automaticamente.
                       </span>
                     </label>
 
                     <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-extrabold uppercase text-gray-500">Certificado Santander PEM</span>
+                      <span className="text-xs font-extrabold uppercase text-gray-500">Certificado/cadeia Santander PEM</span>
                       <input
                         className={inputClass}
                         type="file"
@@ -3608,16 +3608,16 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         placeholder={
                           settings?.santanderCertificatePemSet
                             ? "Certificado ja cadastrado - cole outro para trocar"
-                            : "Cole somente se o certificado estiver em texto PEM"
+                            : "Cole o arquivo que começa com BEGIN CERTIFICATE"
                         }
                       />
                       <span className="text-xs font-semibold text-amber-800">
-                        Selecione o arquivo do certificado que foi cadastrado no portal Santander. Sem ele a API retorna 403 Reference error.
+                        Esse arquivo identifica o certificado cadastrado no portal, mas normalmente nao contem a chave privada.
                       </span>
                     </label>
 
                     <label className="flex flex-col gap-1.5">
-                      <span className="text-xs font-extrabold uppercase text-gray-500">Chave privada PEM</span>
+                      <span className="text-xs font-extrabold uppercase text-gray-500">Chave privada PEM opcional</span>
                       <input
                         className={inputClass}
                         type="file"
@@ -3632,11 +3632,11 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         placeholder={
                           settings?.santanderPrivateKeyPemSet
                             ? "Chave ja cadastrada - cole outra para trocar"
-                            : "Cole a chave privada PEM com BEGIN PRIVATE KEY"
+                            : "Cole apenas se tiver a chave separada com BEGIN PRIVATE KEY"
                         }
                       />
                       <span className="text-xs font-semibold text-amber-800">
-                        Necessaria quando o Santander retorna AlgorithmMismatch/RS256. Ela nao aparece no portal; fica com quem gerou o certificado.
+                        Opcional quando o PFX/P12 original foi informado. Use este campo so se tiver a chave separada.
                       </span>
                     </label>
                   </div>
