@@ -3507,8 +3507,8 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                   </span>
                 </label>
 
-                <details className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                  <summary className="cursor-pointer text-sm font-black text-gray-600">Configuracoes avancadas opcionais</summary>
+                <details className="rounded-2xl border border-amber-100 bg-amber-50 p-3" open>
+                  <summary className="cursor-pointer text-sm font-black text-amber-800">Certificado Santander para OAuth</summary>
                   <div className="mt-3 grid gap-3">
                     <label className="flex flex-col gap-1.5">
                       <span className="text-xs font-extrabold uppercase text-gray-500">URL base da API Santander</span>
@@ -3529,8 +3529,16 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         name="santanderCertificatePem"
                         value={santanderCertificatePem}
                         onChange={(event) => setSantanderCertificatePem(event.target.value)}
-                        placeholder={settings?.santanderCertificatePemSet ? "Certificado ja cadastrado - cole outro para trocar" : "Cole apenas se o Santander exigir mTLS"}
+                        required={!settings?.santanderCertificatePemSet}
+                        placeholder={
+                          settings?.santanderCertificatePemSet
+                            ? "Certificado ja cadastrado - cole outro para trocar"
+                            : "Cole o certificado PEM usado/cadastrado no portal Santander"
+                        }
                       />
+                      <span className="text-xs font-semibold text-amber-800">
+                        O Santander exige esse certificado na etapa OAuth. Sem ele a API retorna 403 Reference error.
+                      </span>
                     </label>
 
                     <label className="flex flex-col gap-1.5">
@@ -3540,7 +3548,11 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
                         name="santanderPrivateKeyPem"
                         value={santanderPrivateKeyPem}
                         onChange={(event) => setSantanderPrivateKeyPem(event.target.value)}
-                        placeholder={settings?.santanderPrivateKeyPemSet ? "Chave ja cadastrada - cole outra para trocar" : "Cole apenas se o Santander exigir mTLS"}
+                        placeholder={
+                          settings?.santanderPrivateKeyPemSet
+                            ? "Chave ja cadastrada - cole outra para trocar"
+                            : "Cole a chave privada PEM, ou deixe vazio se o certificado acima ja vier com PRIVATE KEY"
+                        }
                       />
                     </label>
                   </div>
