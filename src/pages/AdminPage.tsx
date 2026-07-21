@@ -3434,80 +3434,84 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
               </select>
             </label>
 
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-extrabold uppercase text-gray-500">Ambiente Santander</span>
-              <select
-                className={inputClass}
-                value={santanderEnvironment}
-                onChange={(event) => setSantanderEnvironment(event.target.value as AdminSettings["santanderEnvironment"])}
-              >
-                <option value="SANDBOX">Sandbox</option>
-                <option value="PRODUCTION">Producao</option>
-              </select>
-            </label>
+            {paymentProvider === "SANTANDER" && (
+              <>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-extrabold uppercase text-gray-500">Ambiente Santander</span>
+                  <select
+                    className={inputClass}
+                    value={santanderEnvironment}
+                    onChange={(event) => setSantanderEnvironment(event.target.value as AdminSettings["santanderEnvironment"])}
+                  >
+                    <option value="SANDBOX">Sandbox</option>
+                    <option value="PRODUCTION">Producao</option>
+                  </select>
+                </label>
 
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-extrabold uppercase text-gray-500">URL base da API Santander</span>
-              <input
-                className={inputClass}
-                type="url"
-                value={santanderBaseUrl}
-                onChange={(event) => setSantanderBaseUrl(event.target.value)}
-                placeholder="https://trust-sandbox.api.santander.com.br"
-              />
-            </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-extrabold uppercase text-gray-500">URL base da API Santander</span>
+                  <input
+                    className={inputClass}
+                    type="url"
+                    value={santanderBaseUrl}
+                    onChange={(event) => setSantanderBaseUrl(event.target.value)}
+                    placeholder="https://trust-sandbox.api.santander.com.br"
+                  />
+                </label>
 
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-extrabold uppercase text-gray-500">Client ID</span>
-                <input
-                  className={inputClass}
-                  value={santanderClientId}
-                  onChange={(event) => setSantanderClientId(event.target.value)}
-                  placeholder={settings?.santanderClientIdSet ? "Ja cadastrado - preencha para trocar" : "Cole o Client ID"}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="text-xs font-extrabold uppercase text-gray-500">Client Secret</span>
-                <input
-                  className={inputClass}
-                  type="password"
-                  value={santanderClientSecret}
-                  onChange={(event) => setSantanderClientSecret(event.target.value)}
-                  placeholder={settings?.santanderClientSecretSet ? "Ja cadastrado - preencha para trocar" : "Cole o Client Secret"}
-                />
-              </label>
-            </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-xs font-extrabold uppercase text-gray-500">Client ID</span>
+                    <input
+                      className={inputClass}
+                      value={santanderClientId}
+                      onChange={(event) => setSantanderClientId(event.target.value)}
+                      placeholder={settings?.santanderClientIdSet ? "Ja cadastrado - preencha para trocar" : "Cole o Client ID"}
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-xs font-extrabold uppercase text-gray-500">Client Secret</span>
+                    <input
+                      className={inputClass}
+                      type="password"
+                      value={santanderClientSecret}
+                      onChange={(event) => setSantanderClientSecret(event.target.value)}
+                      placeholder={settings?.santanderClientSecretSet ? "Ja cadastrado - preencha para trocar" : "Cole o Client Secret"}
+                    />
+                  </label>
+                </div>
 
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-extrabold uppercase text-gray-500">Chave Pix recebedora</span>
-              <input
-                className={inputClass}
-                value={santanderPixKey}
-                onChange={(event) => setSantanderPixKey(event.target.value)}
-                placeholder={settings?.santanderPixKeySet ? "Ja cadastrada - preencha para trocar" : "CPF, CNPJ, email, telefone ou chave aleatoria"}
-              />
-            </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-extrabold uppercase text-gray-500">Chave Pix recebedora</span>
+                  <input
+                    className={inputClass}
+                    value={santanderPixKey}
+                    onChange={(event) => setSantanderPixKey(event.target.value)}
+                    placeholder={settings?.santanderPixKeySet ? "Ja cadastrada - preencha para trocar" : "CPF, CNPJ, email, telefone ou chave aleatoria"}
+                  />
+                </label>
 
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-extrabold uppercase text-gray-500">Certificado Santander PEM</span>
-              <textarea
-                className={`${inputClass} min-h-28 resize-y`}
-                value={santanderCertificatePem}
-                onChange={(event) => setSantanderCertificatePem(event.target.value)}
-                placeholder={settings?.santanderCertificatePemSet ? "Certificado ja cadastrado - cole outro para trocar" : "Cole o certificado, se a API exigir"}
-              />
-            </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-extrabold uppercase text-gray-500">Certificado Santander PEM</span>
+                  <textarea
+                    className={`${inputClass} min-h-28 resize-y`}
+                    value={santanderCertificatePem}
+                    onChange={(event) => setSantanderCertificatePem(event.target.value)}
+                    placeholder={settings?.santanderCertificatePemSet ? "Certificado ja cadastrado - cole outro para trocar" : "Cole o certificado, se a API exigir"}
+                  />
+                </label>
 
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs font-extrabold uppercase text-gray-500">Chave privada PEM</span>
-              <textarea
-                className={`${inputClass} min-h-28 resize-y`}
-                value={santanderPrivateKeyPem}
-                onChange={(event) => setSantanderPrivateKeyPem(event.target.value)}
-                placeholder={settings?.santanderPrivateKeyPemSet ? "Chave ja cadastrada - cole outra para trocar" : "Cole a chave privada, se a API exigir"}
-              />
-            </label>
+                <label className="flex flex-col gap-1.5">
+                  <span className="text-xs font-extrabold uppercase text-gray-500">Chave privada PEM</span>
+                  <textarea
+                    className={`${inputClass} min-h-28 resize-y`}
+                    value={santanderPrivateKeyPem}
+                    onChange={(event) => setSantanderPrivateKeyPem(event.target.value)}
+                    placeholder={settings?.santanderPrivateKeyPemSet ? "Chave ja cadastrada - cole outra para trocar" : "Cole a chave privada, se a API exigir"}
+                  />
+                </label>
+              </>
+            )}
 
             <AdminButton type="submit" variant="primary" disabled={saving} className="w-full py-3">
               Salvar financeiro
@@ -3519,17 +3523,25 @@ export function AdminPage({ initialTab = "summary" }: { initialTab?: AdminTab })
             <h3 className="mt-1 text-2xl font-black text-brand-black">
               {settings?.paymentProvider === "SANTANDER" ? "Santander" : "Mercado Pago"}
             </h3>
-            <div className="mt-4 grid gap-2 text-sm font-bold text-gray-600">
-              <p>Ambiente: {settings?.santanderEnvironment === "PRODUCTION" ? "Producao" : "Sandbox"}</p>
-              <p>Client ID: {settings?.santanderClientIdSet ? "Cadastrado" : "Nao cadastrado"}</p>
-              <p>Client Secret: {settings?.santanderClientSecretSet ? "Cadastrado" : "Nao cadastrado"}</p>
-              <p>Chave Pix: {settings?.santanderPixKeySet ? "Cadastrada" : "Nao cadastrada"}</p>
-              <p>Certificado: {settings?.santanderCertificatePemSet ? "Cadastrado" : "Nao cadastrado"}</p>
-              <p>Chave privada: {settings?.santanderPrivateKeyPemSet ? "Cadastrada" : "Nao cadastrada"}</p>
-            </div>
-            <div className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
-              A integracao real do Santander sera conectada depois que voce enviar a documentacao da API sandbox.
-            </div>
+            {paymentProvider === "MERCADO_PAGO" ? (
+              <div className="mt-4 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-bold text-emerald-800">
+                Mercado Pago usa as credenciais configuradas no Render. Nada precisa ser cadastrado aqui.
+              </div>
+            ) : (
+              <>
+                <div className="mt-4 grid gap-2 text-sm font-bold text-gray-600">
+                  <p>Ambiente: {settings?.santanderEnvironment === "PRODUCTION" ? "Producao" : "Sandbox"}</p>
+                  <p>Client ID: {settings?.santanderClientIdSet ? "Cadastrado" : "Nao cadastrado"}</p>
+                  <p>Client Secret: {settings?.santanderClientSecretSet ? "Cadastrado" : "Nao cadastrado"}</p>
+                  <p>Chave Pix: {settings?.santanderPixKeySet ? "Cadastrada" : "Nao cadastrada"}</p>
+                  <p>Certificado: {settings?.santanderCertificatePemSet ? "Cadastrado" : "Nao cadastrado"}</p>
+                  <p>Chave privada: {settings?.santanderPrivateKeyPemSet ? "Cadastrada" : "Nao cadastrada"}</p>
+                </div>
+                <div className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-sm font-bold text-amber-800">
+                  Santander sera usado para Pix. Cartao continua pelo Mercado Pago.
+                </div>
+              </>
+            )}
           </AdminCard>
         </section>
       )}
