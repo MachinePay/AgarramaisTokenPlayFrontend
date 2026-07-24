@@ -216,20 +216,20 @@ export function FichasPage() {
             <div className="relative">
               <p className="text-sm font-black uppercase text-brand-black/65">Comprar na mão</p>
               <h2 className="mt-1 text-2xl font-black">Escolha quantas fichas quiser</h2>
-              <div className="mt-4 grid grid-cols-[1fr_auto] gap-3">
-                <label className="flex flex-col gap-1">
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+                <label className="flex min-w-0 flex-col gap-1">
                   <span className="text-xs font-black uppercase text-brand-black/60">Quantidade de fichas</span>
                   <input
-                    className="h-14 rounded-2xl border-0 bg-white px-4 text-2xl font-black text-brand-black outline-none ring-1 ring-brand-black/10 focus:ring-2 focus:ring-brand-black/25"
+                    className="h-14 w-full min-w-0 rounded-2xl border-0 bg-white px-4 text-2xl font-black text-brand-black outline-none ring-1 ring-brand-black/10 focus:ring-2 focus:ring-brand-black/25"
                     inputMode="numeric"
                     min={1}
                     value={customCredits}
                     onChange={(event) => setCustomCredits(event.target.value.replace(/\D/g, "") || "1")}
                   />
                 </label>
-                <div className="flex flex-col justify-end text-right">
+                <div className="flex min-w-0 flex-col justify-end text-right">
                   <span className="text-xs font-black uppercase text-brand-black/60">Total</span>
-                  <span className="text-2xl font-black">R$ {customTotal.toFixed(2)}</span>
+                  <span className="truncate text-2xl font-black">R$ {customTotal.toFixed(2)}</span>
                 </div>
               </div>
               <p className="mt-2 text-xs font-bold text-brand-black/65">
@@ -305,10 +305,10 @@ export function FichasPage() {
                 <img
                   src={`data:image/png;base64,${pixTransaction.pixQrCodeBase64}`}
                   alt="QR Code Pix"
-                  className="mx-auto h-64 w-64 rounded-2xl bg-white p-3"
+                  className="mx-auto aspect-square w-full max-w-[240px] rounded-2xl bg-white p-3"
                 />
               ) : (
-                <div className="mx-auto flex h-64 w-64 items-center justify-center rounded-2xl bg-white p-3 text-sm font-bold text-brand-black">
+                <div className="mx-auto flex aspect-square w-full max-w-[240px] items-center justify-center rounded-2xl bg-white p-3 text-sm font-bold text-brand-black">
                   Copie o codigo Pix abaixo
                 </div>
               )}
